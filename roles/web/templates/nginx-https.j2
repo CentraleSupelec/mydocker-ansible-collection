@@ -1,0 +1,62 @@
+server {
+	listen 443 ssl;
+	listen [::]:443 ssl;
+
+	server_name {{ web_url }};
+	root {{ web_front_location }};
+
+	# SSL
+	ssl_certificate /etc/letsencrypt/live/{{ web_url }}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{ web_url }}/privkey.pem;
+	ssl_trusted_certificate /etc/letsencrypt/live/{{ web_url }}/chain.pem;
+
+	# security
+	include nginxconfig.io/security.conf;
+
+	# reverse proxy
+	location /api/ {
+		proxy_pass http://127.0.0.1:{{ web_back_port }}/;
+		include nginxconfig.io/proxy.conf;
+	}
+
+    # react router
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+	# additional config
+	include nginxconfig.io/general.conf;
+
+	# MyDocker specific config
+	# Allow large context files
+	client_max_body_size 2G;
+}
+
+# subdomains redirect
+server {
+	listen 443 ssl;
+	listen [::]:443 ssl;
+
+	server_name *.{{ web_url }};
+
+	# SSL
+	ssl_certificate /etc/letsencrypt/live/{{ web_url }}/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/{{ web_url }}/privkey.pem;
+	ssl_trusted_certificate /etc/letsencrypt/live/{{ web_url }}/chain.pem;
+
+	return 301 https://{{ web_url }}$request_uri;
+}
+
+# HTTP redirect
+server {
+	listen 80;
+	listen [::]:80;
+
+	server_name .{{ web_url }};
+
+	include nginxconfig.io/letsencrypt.conf;
+
+	location / {
+		return 301 https://{{ web_url }}$request_uri;
+	}
+}

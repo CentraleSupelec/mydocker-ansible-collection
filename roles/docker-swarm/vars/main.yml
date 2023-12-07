@@ -1,0 +1,5 @@
+---
+docker_swarm_port: 2377
+docker_swarm_seccomp_folder: /opt/docker-seccomp
+docker_swarm_seccomp_override: false
+...

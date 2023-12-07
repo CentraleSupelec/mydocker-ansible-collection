@@ -1,0 +1,5 @@
+---
+- name: refresh terraform state
+  command:
+    chdir:  "{{ terraform_dir }}"
+    cmd: terraform refresh

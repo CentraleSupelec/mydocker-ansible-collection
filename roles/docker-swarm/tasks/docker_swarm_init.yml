@@ -1,0 +1,52 @@
+- name: Manager - Init a new swarm with default parameters
+  docker_swarm:
+    state: present
+    advertise_addr: "{{ hostvars[groups['docker_swarm_manager'][0]]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"
+  register: swarm_info
+  when: inventory_hostname == groups['docker_swarm_manager'][0]
+
+- name: Manager - Declare the workers join token as a fact
+  set_fact:
+    docker_worker_join_token: "{{ swarm_info.swarm_facts.JoinTokens.Worker }}"
+  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+  run_once: true
+
+- name: Workers - Join the swarm
+  docker_swarm:
+    advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"
+    state: join
+    join_token: "{{ docker_worker_join_token }}"
+    remote_addrs: ["{{ hostvars[groups['docker_swarm_manager'][0]]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"]
+
+- name: Retrieve Swarm ID
+  docker_host_info:
+  register: docker_info
+
+- name: Add storage label
+  docker_node:
+    hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
+    labels:
+      volume_backend: "{{ docker_swarm_volume_backend }}"
+  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+
+- name: Add "gpu" label to the gpu nodes
+  docker_node:
+    hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
+    labels:
+      gpu_type: "{{ gpu_type }}"
+  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+  when: gpu_type is defined
+
+- name: Add "owner" label to the nodes
+  docker_node:
+    hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
+    labels:
+      owner: "{{ owner }}"
+  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+  when: owner is defined
+
+- name: Disable Leader scheduling
+  docker_node:
+    hostname: "{{ ansible_hostname }}"
+    availability: drain
+  when: inventory_hostname == groups['docker_swarm_manager'][0]

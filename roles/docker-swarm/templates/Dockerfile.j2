@@ -1,0 +1,10 @@
+FROM gcr.io/kaniko-project/executor:debug
+
+SHELL ["/busybox/sh", "-c"]
+RUN echo -e "{\n\
+    \"auths\": {\n\
+        \"{{ registry_address }}\": {\n\
+            \"auth\": \"$(echo -n {{ registry_username }}:{{ registry_password }} | base64)\"\n\
+        }\n\
+    }\n\
+}" > /kaniko/.docker/config.json

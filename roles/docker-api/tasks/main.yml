@@ -1,0 +1,77 @@
+---
+- name: Create releases directory
+  file:
+    path: /opt/thuv/releases/docker_api/{{ docker_api_version }}/
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: u=rwx,g=rx,o=rx
+  become: yes
+
+- name: Fetch docker_api
+  get_url:
+    url: "https://gitlab-research.centralesupelec.fr/api/v4/projects/1600/jobs/artifacts/{{ docker_api_version }}/download?job=build_uploaded_artifacts"
+    dest: /opt/thuv/releases/docker_api/{{ docker_api_version }}/build.zip
+    headers:
+      PRIVATE-TOKEN: "{{ gitlab_private_token }}"
+
+- name: Extract docker_api
+  unarchive:
+    src: /opt/thuv/releases/docker_api/{{ docker_api_version }}/build.zip
+    dest: /opt/thuv/releases/docker_api/{{ docker_api_version }}/
+    remote_src: yes
+  become: yes
+
+- name: Add docker API systemd service
+  template:
+    src: thuv-docker.service.j2
+    dest: /lib/systemd/system/thuv-docker.service
+  become: yes
+  register: systemd_unit
+
+- name: force systemd to reread configs
+  systemd: daemon_reload=yes
+  become: yes
+  when: systemd_unit.changed
+
+- name: Create thuv API directory
+  file:
+    path: "{{ web_docker_api_location }}"
+    state: directory
+  become: yes
+
+- name: ensure correct permissions
+  file:
+    path: /opt/thuv/releases/docker_api/{{ docker_api_version }}/docker-api/docker-api
+    owner: root
+    group: root
+    mode: "u=rx,g=rx,o=r"
+  become: yes
+
+- name: Deploy docker API
+  file:
+    src: /opt/thuv/releases/docker_api/{{ docker_api_version }}/docker-api/docker-api
+    dest: "{{ web_docker_api_location }}docker-api"
+    state: link
+    mode: u=rx,g=rx,o=rx
+  become: yes
+
+- name: Create thuv back config directory
+  file:
+    path: "/etc/docker-api/"
+    state: directory
+  become: yes
+
+- name: Add docker API config file
+  template:
+    src: config.yml.j2
+    dest: "/etc/docker-api/config.yml"
+  become: yes
+
+- name: restart service Thuv docker API
+  systemd:
+    state: restarted
+    name: thuv-docker
+  become: yes
+
+- name: Pull rsync image
+  shell: docker pull instrumentisto/rsync-ssh:latest

@@ -1,0 +1,30 @@
+---
+- name: Install Ceph dependencies
+  apt:
+    name:
+      - ceph
+      - ceph-common
+    autoclean: "yes"
+    update_cache: "yes"
+  tags:
+    - install
+    - update
+  become: true
+
+- name: Create ceph dir
+  file:
+    path: /etc/ceph
+    state: directory
+    mode: '0755'
+
+- name: Install Ceph config file
+  template:
+    src: ceph.conf.j2
+    dest: /etc/ceph/ceph.conf
+  become: true
+
+- name: Install Ceph keyring file
+  template:
+    src: ceph.client.ceph_user.keyring.j2
+    dest: /etc/ceph/ceph.client.{{ ceph_user }}.keyring
+  become: true

@@ -1,0 +1,8 @@
+[Unit]
+Description="Thuv docker API"
+
+[Service]
+ExecStart={{ web_docker_api_location }}docker-api
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,110 @@
+---
+- name: Configure apt list changes
+  copy:
+    src: listchanges.conf
+    dest: '/etc/apt/listchanges.conf'
+  become: yes
+
+- name: Update and upgrade apt packages
+  become: yes
+  apt:
+    upgrade: yes
+    update_cache: yes
+  tags:
+    - install
+    - update
+
+- name: Install basic utilities
+  apt:
+    name:
+      - man
+      - vim
+      - htop
+      - git
+      - zsh
+      - screen
+      - mosh
+      - locate
+      - apt-listchanges
+      - locales
+      - rsync
+      - ncdu
+      - traceroute
+      - ldnsutils
+      - lsof
+      - silversearcher-ag
+      - ncurses-term
+      - fail2ban
+      - gnupg
+      - curl
+      - unzip
+    autoclean: "yes"
+    state: present
+  tags:
+    - install
+    - update
+  become: yes
+
+- name: Set timezone to Europe/Paris
+  timezone:
+    name: Europe/Paris
+  tags:
+    - install
+    - timezone
+  notify: Restart rsyslog
+  become: yes
+
+- name: Generate locales
+  locale_gen:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - en_US.UTF-8
+    - fr_FR.UTF-8
+  tags:
+    - install
+  become: yes
+
+- when: common_users is defined
+  name: Set shell to ZSH
+  user:
+    name: "{{ item }}"
+    shell: /bin/zsh
+  loop: "{{ common_users }}"
+  tags:
+    - install
+    - zsh
+  become: yes
+
+- when: common_users is defined and (user_homes is undefined or item not in user_homes)
+  include_tasks: homes.yml
+  loop: "{{ common_users }}"
+
+- name: ZSH configuration
+  include_tasks: zsh.yml
+  tags:
+    - install
+    - zsh
+
+- when: common_users is defined
+  name: screen configuration for users
+  copy:
+    src: screenrc
+    dest: "{{ user_homes[item] }}/.screenrc"
+  tags:
+    - install
+    - screen
+  loop: "{{ common_users }}"
+  become: yes
+
+- when: common_ssh_authorized_keys is defined
+  name: Provision ssh keys
+  authorized_key:
+    user: "{{ item.key }}"
+    state: present
+    key: "{{item.value | join('\n') if item.value is defined and item.value is iterable else ''}}"
+    exclusive: "yes"
+  loop: "{{ (common_ssh_authorized_keys|default({}))|dict2items }}"
+  tags:
+    - ssh
+...

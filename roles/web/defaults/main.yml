@@ -1,0 +1,4 @@
+---
+cas_base_url: https://cas.cloud.centralesupelec.fr/cas
+web_debug_grpc: "false"
+web_extra_application_properties: ~

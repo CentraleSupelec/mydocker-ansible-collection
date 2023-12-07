@@ -1,0 +1,60 @@
+## App Properties
+app.jwtSecret = {{ web_jwt_secret }}
+app.jwtExpirationInMs = {{ web_jwt_expiration }}
+app.cas.rscUrl={{ cas_base_url }}/p3/serviceValidate
+app.cas.service=https://{{ web_url }}/loginAccept
+
+## Spring DATASOURCE (DataSourceAutoConfiguration & DataSourceProperties)
+spring.datasource.url=jdbc:postgresql://localhost:{{ web_pg_port }}/{{web_pg_database}}
+spring.datasource.username= {{ web_pg_username }}
+spring.datasource.password= {{ web_pg_password }}
+spring.datasource.hikari.data-source-properties.stringtype=unspecified
+
+# Shady undocumented exception
+spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults = false
+# The SQL dialect makes Hibernate generate better SQL for the chosen database
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.PostgreSQLDialect
+
+# Hibernate ddl auto (create, create-drop, validate, update)
+spring.jpa.hibernate.ddl-auto = validate
+spring.liquibase.change-log=classpath:dbschema/master.xml
+
+## Go API Configuration
+go.app.address = {{ hostvars.manager.ansible_host }}
+go.app.port = 50000
+go.debug = {{ web_debug_grpc }}
+
+## Sentry configuration
+sentry.dsn = {{ web_sentry_dsn }}
+sentry.environment = {{ env }}
+
+context_save_path = {{ web_contexts_save }}
+spring.servlet.multipart.max-file-size=1GB
+spring.servlet.multipart.max-request-size=1GB
+
+scale-up.terraformStateUrl = {{ terraform_state_url }}
+spring.task.scheduling.pool.size=50
+
+spring.mail.host=smtp.tipimail.com
+spring.mail.port=587
+spring.mail.username={{ tipi_username }}
+spring.mail.password={{ tipi_password }}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+notification.mails.to[0]=arnaud.clauss@illuin-tech.com
+notification.mails.to[1]=paul.bizouard@centralesupelec.fr
+notification.mails.to[2]=paul.des-garets@illuin.tech
+notification.mails.from=noreply@mydocker-dev.centralesupelec.fr
+
+log4j2.formatMsgNoLookups=true
+
+lti.base-path=https://{{ web_url }}/api
+lti.private-key-path=file://{{ web_back_config_location }}/private-key.pem
+lti.public-key-path=file://{{ web_back_config_location }}/public-key.pem
+
+spring.mustache.prefix=classpath:/templates/
+spring.mustache.suffix=.html
+
+deployment_delay_in_milliseconds={{ web_deployment_delay_in_milliseconds }}
+
+{{ web_extra_application_properties }}

@@ -1,0 +1,10 @@
+[Unit]
+Description=Thuv
+
+[Service]
+ExecStart={{ web_jvm_dir }}/openjdk17/bin/java -javaagent:/opt/dd-java-agent.jar -Djava.security.egd=file:/dev/./urandom -jar {{ web_back_location }}thuv.jar --spring.config.location=file:{{ web_back_config_location }}
+Environment=JAVA_HOME={{ web_jvm_dir }}/openjdk17
+Environment=DD_SERVICE_NAME=thuv
+
+[Install]
+WantedBy=multi-user.target

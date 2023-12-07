@@ -1,0 +1,30 @@
+---
+- name: init var
+  set_fact:
+    tainted_servers: {}
+
+- name: save_servers
+  include_tasks: save_server.yml
+  loop: "{{ terraform_state.resources }}"
+  loop_control:
+    loop_var: resource
+  when: resource.type == "openstack_compute_instance_v2"
+
+- name: read tfvars file
+  set_fact:
+    tfvars_content: "{{ lookup('file', tfvars_file)|from_json }}"
+
+- name: read named workers
+  set_fact:
+    named_workers: "{{ tfvars_content.named_workers }}"
+
+- name: include untaint tasks
+  include_tasks: untaint.yml
+  loop: "{{ tainted_servers | dict2items }}"
+
+- name: set new tfvars file
+  template:
+    src: empty.j2
+    dest: "{{ tfvars_file }}"
+  vars:
+    content: "{{ tfvars_content|combine({'named_workers': named_workers}) | to_json }}"

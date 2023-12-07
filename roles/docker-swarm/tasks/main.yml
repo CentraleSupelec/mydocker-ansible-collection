@@ -1,0 +1,51 @@
+---
+- name: Install pip
+  apt:
+    name:
+      - python3-pip
+    autoclean: "yes"
+    update_cache: "yes"
+    state: present
+  tags:
+    - install
+    - update
+
+- name: Install docker module
+  pip:
+    name: docker
+  tags:
+    - install
+    - update
+
+- name: create directories for plugin
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  tags:
+    - docker_install_plugin
+  loop:
+    - /etc/ceph
+    - /mnt/mydocker-fs
+
+- name: Include Docker Swarm plugins tasks (centralesupelec/mydockervolume, ceph)
+  import_tasks: ceph_plugin.yml
+  when: 'docker_swarm_volume_backend == "rbd"'
+  tags:
+    - docker_install_plugin
+
+- name: Include Docker Swarm plugins tasks (centralesupelec/mydockervolume, ceph)
+  import_tasks: local_volume_plugin.yml
+  when: 'docker_swarm_volume_backend == "fs"'
+  tags:
+    - docker_install_plugin
+
+- name: Include Docker Swarm init tasks
+  import_tasks: docker_swarm_init.yml
+  tags:
+    - docker_swarm_init
+
+- name: Include seccomp tasks
+  import_tasks:  seccomp.yml
+  tags:
+    - docker_swarm_seccomp

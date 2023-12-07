@@ -1,0 +1,7 @@
+- name: Create and configure docker swarm
+  hosts: docker_swarm_manager:docker_swarm_worker
+  roles:
+    - name: assert-on-prem
+      when: gpu_type is defined
+    - docker-swarm
+  become: yes

@@ -1,0 +1,42 @@
+---
+- name: Add nvidia container runtime key
+  ansible.builtin.apt_key:
+    url: https://nvidia.github.io/nvidia-container-runtime/gpgkey
+    state: present
+
+- name: Add nvidia repo
+  get_url:
+    url: https://nvidia.github.io/nvidia-container-runtime/{{ ansible_distribution | lower }}{{ ansible_distribution_version }}/nvidia-container-runtime.list
+    dest: /etc/apt/sources.list.d/nvidia-container-runtime.list
+    mode: 0644
+  register: nvidia_runtime_apt
+
+- name: Update apt
+  apt:
+    update_cache: "yes"
+  when: nvidia_runtime_apt.changed
+
+- name: Install nvidia-docker2
+  apt:
+    name:
+      - nvidia-docker2
+    state: present
+  notify: "Restart Docker"
+
+- name: Uncomment swarm-resource
+  replace:
+    path: /etc/nvidia-container-runtime/config.toml
+    regexp: '^\s*#+swarm-resource.*$'
+    replace: 'swarm-resource = "DOCKER_RESOURCE_GPU"'
+  register: nvidia_runtime_uncomment
+  when: gpu_type is defined and gpu_type == 'dedicated'
+  notify: "Restart Docker"
+
+- name: Comment swarm-resource
+  replace:
+    path: /etc/nvidia-container-runtime/config.toml
+    regexp: '^\s*swarm-resource.*$'
+    replace: '#swarm-resource = "DOCKER_RESOURCE_GPU"'
+  register: nvidia_runtime_comment
+  when: gpu_type is not defined or gpu_type == 'shared'
+  notify: "Restart Docker"

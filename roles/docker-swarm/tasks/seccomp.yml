@@ -1,0 +1,31 @@
+- name: Create seccomp folder
+  file:
+    path: "{{ docker_swarm_seccomp_folder }}"
+    state: directory
+    group: docker
+    mode: u+rw,g+r,o-rwx
+  when: docker_swarm_seccomp_override
+
+- name: Copy seccomp configuration
+  copy:
+    src: seccomp.json
+    dest: "{{ docker_swarm_seccomp_folder }}/seccomp.json"
+    group: docker
+    mode: u+rw,g+r,o-rwx
+  when: docker_swarm_seccomp_override
+
+- name: Enable seccomp profile
+  replace:
+    backup: yes
+    dest: /lib/systemd/system/docker.service
+    regexp: '^(ExecStart=\/usr\/bin\/dockerd -H fd:\/\/(?!.*--seccomp-profile {{ docker_swarm_seccomp_folder }}\/seccomp.json\b).*)$'
+    replace: '\1 --seccomp-profile {{ docker_swarm_seccomp_folder }}/seccomp.json'
+  register: enable_seccomp_profile
+  when: docker_swarm_seccomp_override
+
+- name: Restart docker service on change
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: docker
+  when: enable_seccomp_profile.changed

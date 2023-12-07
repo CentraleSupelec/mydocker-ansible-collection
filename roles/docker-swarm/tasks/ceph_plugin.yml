@@ -1,0 +1,50 @@
+- name: check if centralesupelec/mydockervolume plugin already installed
+  command: docker plugin list
+  register: plugin_list
+  changed_when: false
+
+- name: install docker centralesupelec/mydockervolume plugin
+  command: "docker plugin install {{ docker_swarm_volume_plugin }} --alias=centralesupelec/mydockervolume LOG_LEVEL=warning DRIVER_MODE=RBD RBD_CONF_POOL=mydocker-{{ env }} RBD_CONF_CLUSTER=ceph RBD_CONF_KEYRING_USER=client.{{ ceph_user }} --grant-all-permissions"
+  when: '"centralesupelec/mydockervolume" not in plugin_list.stdout'
+
+- name: get docker centralesupelec/mydockervolume plugin env configuration
+  command: docker plugin inspect -f {{ '{{.Settings.Env}}' }} centralesupelec/mydockervolume
+  changed_when: false
+  register: rbd_env_list
+
+- name: disable centralesupelec/mydockervolume plugin to update conf
+  command: docker plugin disable centralesupelec/mydockervolume -f
+  when: ceph_user not in rbd_env_list.stdout
+
+- name: update RBD_CONF_KEYRING_USER of centralesupelec/mydockervolume plugin
+  command: "docker plugin set centralesupelec/mydockervolume RBD_CONF_KEYRING_USER=client.{{ ceph_user }}"
+  when: ceph_user not in rbd_env_list.stdout
+
+- name: update RBD_CONF_POOL of centralesupelec/mydockervolume plugin
+  command: "docker plugin set centralesupelec/mydockervolume RBD_CONF_POOL=mydocker-{{ env }}"
+  when: ceph_user not in rbd_env_list.stdout
+
+- name: enable centralesupelec/mydockervolume plugin
+  command: docker plugin enable centralesupelec/mydockervolume
+  when: ceph_user not in rbd_env_list.stdout
+
+- name: install docker cephfs plugin
+  command: "docker plugin install brindster/docker-plugin-cephfs --alias cephfs CLUSTER_NAME=ceph CLIENT_NAME={{ ceph_user }} SERVERS=10.97.211.93,10.97.75.93,10.97.71.93 --grant-all-permissions"
+  when: '"cephfs" not in plugin_list.stdout'
+
+- name: get docker cephfs plugin env configuration
+  command: docker plugin inspect -f {{ '{{.Settings.Env}}' }} cephfs
+  changed_when: false
+  register: cephfs_env_list
+
+- name: disable cepfs plugin to update conf
+  command: docker plugin disable cephfs -f
+  when: ceph_user not in cephfs_env_list.stdout
+
+- name: update CLIENT_NAME of cephfs plugin
+  command: "docker plugin set cephfs CLIENT_NAME={{ ceph_user }}"
+  when: ceph_user not in cephfs_env_list.stdout
+
+- name: enable cepfs plugin
+  command: docker plugin enable cephfs
+  when: ceph_user not in cephfs_env_list.stdout

@@ -1,0 +1,200 @@
+- name: Install Backy2
+  block:
+    - name: Apt install from github .deb package
+      apt:
+        deb: "{{ backy2_deb }}"
+
+- name: Install python postgresql and backy2 dependency
+  apt:
+    name:
+      - postgresql
+      - libpq-dev
+      - python3-boto3
+      - python3-rbd
+      - python3-rados
+
+- name: Install python packages
+  pip:
+    executable: pip3
+    name:
+      - pycryptodome
+      - zstandard
+      - minio
+      - psycopg2
+
+# Database configuration
+- name: Create a new database for Backy2
+  postgresql_db:
+    name: "{{ backy2_db_database }}"
+    encoding: UTF-8
+  become: yes
+  vars:
+    ansible_ssh_pipelining: true
+  become_user: postgres
+
+- name: Create postgresql user and grant access to database and tables
+  postgresql_user:
+    db: "{{ backy2_db_database }}"
+    name: "{{ backy2_db_username }}"
+    password: "{{ backy2_db_password }}"
+    priv: "ALL"
+  become: yes
+  vars:
+    ansible_ssh_pipelining: true
+  become_user: postgres
+
+# Backy2 Configuration
+- name: Configure encryption_key
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^encryption_key:"
+    insertafter: "^#encryption_key:"
+    line: "encryption_key: {{ backy2_encryption_key }}"
+
+- name: Configure encryption_version
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^encryption_version:"
+    line: "encryption_version: 1"
+
+- name: Configure engine
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^engine:"
+    line: "engine: {{ backy2_engine }}"
+
+- name: Configure rados_name
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^rados_name:"
+    line: "rados_name: {{ backy2_rados_name }}"
+
+# Backend (s3)
+- name: Disable file backend type
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^type: backy2.data_backends.file"
+    line: "#type: backy2.data_backends.file"
+
+- name: Enable s3 backend type
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^type: backy2.data_backends.s3"
+    insertafter: "^# *type: backy2.data_backends.s3"
+    line: "type: backy2.data_backends.s3"
+    firstmatch: true
+
+- name: Configure aws_access_key_id
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^aws_access_key_id:"
+    insertafter: "^# *aws_access_key_id:"
+    line: "aws_access_key_id: {{ backy2_s3_access_key }}"
+    firstmatch: true
+
+- name: Configure aws_secret_access_key
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^aws_secret_access_key:"
+    insertafter: "^# *aws_secret_access_key:"
+    line: "aws_secret_access_key: {{ backy2_s3_secret_access_key }}"
+    firstmatch: true
+
+- name: Configure region_name
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^region_name:"
+    insertafter: "^# *region_name:"
+    line: "region_name: {{ backy2_s3_region_name }}"
+    firstmatch: true
+
+- name: Configure bucket_name
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^bucket_name:"
+    insertafter: "^# *bucket_name:"
+    line: "bucket_name: {{ backy2_s3_bucket_name }}"
+    firstmatch: true
+
+- name: Configure endpoint_url
+  ansible.builtin.lineinfile:
+    path: /etc/backy.cfg
+    regexp: "^endpoint_url:"
+    insertafter: "^# *endpoint_url:"
+    line: "endpoint_url: {{ backy2_s3_endpoint_url }}"
+    firstmatch: true
+
+# Copy backup scripts
+- name: Create backup scripts directory
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+  loop:
+    - /home/ubuntu/backy2
+
+- name: Create restore directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /mnt/backy2
+    - /mnt/restored
+
+- name: Copy backup script
+  ansible.builtin.template:
+    src: "templates/{{ item }}"
+    dest: "/home/ubuntu/backy2/{{ item }}"
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+  loop:
+    - backup-volume.sh
+    - backup-full.sh
+    - restore-volume.sh
+
+- name: Configure environment in main backup script
+  ansible.builtin.lineinfile:
+    path: /home/ubuntu/backy2/backup-full.sh
+    regexp: "^ENV="
+    line: "ENV={{ env }}"
+
+# Cronjob
+- name: Create log dir
+  file:
+    path: /var/log/backy2
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+
+- name: "Create logrotate config file"
+  file:
+    path: "/etc/logrotate.d/backy2"
+    state: touch
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+
+- name: "Add config block to logrotate config file"
+  blockinfile:
+    path: "/etc/logrotate.d/backy2"
+    block: |
+      /var/log/backy2/backy2.log {
+        copytruncate
+        notifempty
+        rotate 7
+        missingok
+        compress
+        delaycompress
+      }
+
+- name: Install cronjob
+  cron:
+    name: Backy2 daily Ceph backup
+    minute: "0"
+    hour: "1"
+    job: "/home/ubuntu/backy2/backup-full.sh > /var/log/backy2/backy2.log 2>&1"
+    user: ubuntu

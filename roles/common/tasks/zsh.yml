@@ -1,0 +1,80 @@
+---
+- name: Create tmp folder
+  file:
+    path: "{{ common_local_tmp_folder }}/oh-my-zsh"
+    state: directory
+  delegate_to: localhost
+  run_once: "yes"
+  vars:
+    ansible_become: "no"
+
+- name: Clone oh-my-zsh
+  git:
+    repo: https://github.com/robbyrussell/oh-my-zsh
+    dest: "{{ common_local_tmp_folder }}/oh-my-zsh"
+    version: master
+  delegate_to: localhost
+  run_once: "yes"
+  vars:
+    ansible_become: "no"
+  tags:
+    - install
+    - zsh
+
+- name: Clone oh-my-via
+  git:
+    repo: https://github.com/badouralix/oh-my-via
+    dest: "{{ common_local_tmp_folder }}/oh-my-zsh/custom/themes/oh-my-via"
+    version: master
+  delegate_to: localhost
+  run_once: "yes"
+  vars:
+    ansible_become: "no"
+  tags:
+    - install
+    - zsh
+
+- name: Create oh-my-zsh installation folder
+  file:
+    path: /etc/zsh/.oh-my-zsh
+    state: directory
+  become: yes
+
+# rsync is much faster than copy
+- name: Copy oh-my-zsh
+  synchronize:
+    src: "{{ common_local_tmp_folder }}/oh-my-zsh/"
+    dest: /etc/zsh/.oh-my-zsh/
+  tags:
+    - copy
+    - zsh
+  become: yes
+
+- name: ensure correct permissions
+  file:
+    path: /etc/zsh/.oh-my-zsh/
+    recurse: "yes"
+    owner: root
+    group: root
+    mode: "g-w"
+  become: yes
+
+- name: Copy zshrc
+  copy:
+    src: zshrc
+    dest: /etc/zsh/zshrc
+  tags:
+    - install
+    - update
+    - zsh
+  become: yes
+
+- when: common_users is defined
+  name: Create an empty .zshrc
+  copy:
+    content: ""
+    dest: "{{ user_homes[item] }}/.zshrc"
+    force: "no"
+  loop: "{{ common_users }}"
+  become: yes
+...

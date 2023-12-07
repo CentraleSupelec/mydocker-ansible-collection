@@ -1,0 +1,7 @@
+scale_up_interval: 10s
+golang_log_level: error
+scale_up_cooldown: 5m
+scale_down_interval: 5m
+scale_down_remove_non_empty: false
+admin_image: "jq422pa7.gra7.container-registry.ovh.net/mydocker/filebrowser:latest"
+precreate_volume: true

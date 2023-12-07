@@ -1,0 +1,21 @@
+---
+- name: set default state_file
+  set_fact:
+    state_file: "{{ retrieve_state_source }}"
+
+- name: fetch state if remote
+  when: "'http://' in retrieve_state_source or 'https://' in retrieve_state_source"
+  block:
+  - name: fetch remote state
+    get_url:
+      url: "{{ retrieve_state_source }}"
+      dest: /tmp/state.tf
+    delegate_to: localhost
+
+  - name: override state_file
+    set_fact:
+      state_file: /tmp/state.tf
+
+- name: set terraform_state var
+  set_fact:
+    retrieve_state_result: "{{ lookup('file', state_file) | from_json }}"

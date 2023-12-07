@@ -1,0 +1,46 @@
+Port: 50000
+Worker: 30
+PortThreshold: 75
+PortSize: 150
+PortMin: 10100
+PortMax: 15000
+DefaultNanoCPUsLimit: 2000000000
+DefaultMemoryBytesLimit: 1070000000
+BuildRegistryAddress: {{ registry_address }}
+BuildImage: "jq422pa7.gra7.container-registry.ovh.net/mydocker/kaniko:1.0.1"
+BuildImageRepository: "mydocker-{{ env }}"
+RegistryCredentials:
+  - Address: "{{ registry_address }}"
+    Username: "{{ registry_username }}"
+    Password:  "{{ registry_password }}"
+LogLevel: "{{ golang_log_level }}"
+CephFSPrefix: "{{ env }}"
+CephCluster: "ceph"
+KeyringUser: "client.{{ ceph_user }}"
+CephPool: "mydocker-{{ env }}"
+CephServiceName: "{{ ceph_service_name }}"
+AdminImage: "{{ admin_image }}"
+DeployImage: "jq422pa7.gra7.container-registry.ovh.net/mydocker/deploy:{{ deploy_image_tag }}"
+Environment: "{{ env }}"
+AutoscalingStateBaseUrl: "{{ autoscaling_state_base_url }}"
+ScaleUpInterval: "{{ scale_up_interval }}"
+ScaleUpCooldown: "{{ scale_up_cooldown }}"
+ScaleDownInterval: "{{ scale_down_interval }}"
+EmailUsername: "{{ tipi_username }}"
+EmailPassword: "{{ tipi_password }}"
+EmailServer: "smtp.tipimail.com"
+EmailPort: 587
+EmailFrom: "noreply@mydocker-dev.centralesupelec.fr"
+EmailTo:
+  - paul.des-garets@illuin.tech
+  - paul.bizouard@centralesupelec.fr
+LogsTimeout: "500ms"
+ScaleDownRemoveNonEmpty: {{ scale_down_remove_non_empty | to_json }}
+DeployEnvSecrets:
+  - "AWS_ACCESS_KEY_ID={{ s3_backend_access_key }}"
+  - "AWS_SECRET_ACCESS_KEY={{ s3_backend_secret_key }}"
+  - "OVH_CONSUMER_KEY={{ ovh_consumer_key }}"
+  - "OVH_APPLICATION_SECRET={{ ovh_application_secret }}"
+  - "OS_USERNAME={{ os_username }}"
+  - "OS_PASSWORD={{ os_password }}"
+PrecreateVolume: {{ precreate_volume | to_json }}

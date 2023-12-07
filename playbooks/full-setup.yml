@@ -1,0 +1,37 @@
+---
+- name: Install common tools
+  hosts: all
+  become: yes
+  roles:
+   - common
+   -  { role: Datadog.datadog }
+
+- name: Install docker
+  hosts: docker_swarm_manager:docker_swarm_worker
+  become: true
+  roles:
+    - role: "nickjj.docker"
+      tags: ["docker"]
+
+- name: Create and configure docker swarm
+  hosts: docker_swarm_manager:docker_swarm_worker
+  roles:
+    - ceph-install
+    - docker-swarm
+  become: yes
+
+- name: Tweak monitoring
+  hosts: all
+  roles:
+   - monitoring
+  become: yes
+
+- name: Install docker api
+  hosts: docker_swarm_manager
+  roles:
+    - docker-api
+
+- name: Install web server
+  hosts: web
+  roles:
+    - web

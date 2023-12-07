@@ -1,0 +1,19 @@
+    "default-runtime": "nvidia",
+    {% if gpu_pre_docker_shm_size is defined and gpu_pre_docker_shm_size %}"default-shm-size": "{{ gpu_pre_docker_shm_size }}",{% endif %}
+    "runtimes":
+    {
+        "nvidia":
+        {
+            "path": "/usr/bin/nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    },
+    "node-generic-resources": [
+        {% if gpu_type is not defined or gpu_type == 'shared' %}
+            "gpu=100"
+        {% else %}
+            {% for uuid in gpu_uuid.stdout_lines %}
+                    "gpu={{ uuid }}" {% if not loop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
+    ]

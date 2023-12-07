@@ -1,0 +1,39 @@
+---
+- name: Creates journald directory to write logs persistently on disk
+  file: 
+    path: /var/log/journal
+    state: directory
+
+- name: ensure correct permissions
+  file:
+    path: /var/log/journal
+    recurse: "yes"
+    owner: root
+    group: systemd-journal
+
+- name: Add datadog-agent to systemd-journald group
+  user:
+    name: dd-agent
+    append: yes
+    groups:
+      - systemd-journal
+  notify: Restart Datadog agent
+
+- name: Check if docker is installed
+  shell: dpkg-query -l docker 2>&1
+  register: deb_docker_check
+  ignore_errors: yes
+  tags:
+    - docker
+
+- name: Add datadog-agent to docker group if docker is installed
+  user:
+    name: dd-agent
+    append: yes
+    groups:
+      - docker
+  when: deb_docker_check.stdout.find('no packages found') == -1
+  notify: Restart Datadog agent
+  tags:
+    - docker
+...

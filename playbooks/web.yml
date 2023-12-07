@@ -1,0 +1,10 @@
+---
+- name: Install docker api
+  hosts: docker_swarm_manager
+  roles:
+    - docker-api
+
+- name: Install web server
+  hosts: web
+  roles:
+    - web

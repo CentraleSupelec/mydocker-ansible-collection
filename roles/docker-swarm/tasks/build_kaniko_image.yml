@@ -1,0 +1,14 @@
+- name: Create app folder
+  file:
+    name: /opt/kaniko-executor
+    state: directory
+
+- name: Create Dockerfile
+  template:
+    src: Dockerfile.j2
+    dest: /opt/kaniko-executor/Dockerfile
+
+- name: Create kaniko executor docker image
+  shell: "docker build -t kaniko-executor-my-docker ."
+  args:
+    chdir: /opt/kaniko-executor
