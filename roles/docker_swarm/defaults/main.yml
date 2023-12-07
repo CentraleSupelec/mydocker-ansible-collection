@@ -1,0 +1,14 @@
+docker_swarm_volume_backend: rbd # rbd OR fs
+docker_swarm_volume_plugin: centralesupelec/mydockervolume:latest
+docker_swarm_port: 2377
+docker_swarm_seccomp_folder: /opt/docker-seccomp
+docker_swarm_seccomp_override: false
+ceph_user: ~
+ceph_ips: ~
+env: ~
+ceph_pool: mydocker-{{ env }}
+# gpu_type: ~
+# owner: ~
+registry_address: ~
+registry_username: ~
+registry_password: ~

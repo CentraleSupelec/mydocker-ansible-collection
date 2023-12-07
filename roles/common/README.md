@@ -37,5 +37,5 @@ None.
 - hosts: all
 
   roles:
-     - common
+     - centralesupelec.mydocker.common
 ```

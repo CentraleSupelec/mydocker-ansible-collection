@@ -1,7 +1,7 @@
 ---
 - name: Create releases directory
   file:
-    path: /opt/thuv/releases/docker_api/{{ docker_api_version }}/
+    path: /opt/thuv/releases/docker_api/{{ docker_api_version | mandatory }}/
     state: directory
     owner: "{{ ansible_user }}"
     mode: u=rwx,g=rx,o=rx
@@ -9,10 +9,8 @@
 
 - name: Fetch docker_api
   get_url:
-    url: "https://gitlab-research.centralesupelec.fr/api/v4/projects/1600/jobs/artifacts/{{ docker_api_version }}/download?job=build_uploaded_artifacts"
+    url: "https://github.com/CentraleSupelec/mydocker/releases/download/docker-api-{{ docker_api_version }}/artifacts.zip"
     dest: /opt/thuv/releases/docker_api/{{ docker_api_version }}/build.zip
-    headers:
-      PRIVATE-TOKEN: "{{ gitlab_private_token }}"
 
 - name: Extract docker_api
   unarchive:

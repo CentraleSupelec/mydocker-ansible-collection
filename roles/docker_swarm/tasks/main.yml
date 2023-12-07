@@ -13,6 +13,7 @@
 - name: Install docker module
   pip:
     name: docker
+    extra_args: "--break-system-packages"
   tags:
     - install
     - update
@@ -46,6 +47,6 @@
     - docker_swarm_init
 
 - name: Include seccomp tasks
-  import_tasks:  seccomp.yml
+  import_tasks: seccomp.yml
   tags:
     - docker_swarm_seccomp

@@ -1,0 +1,7 @@
+- name: Generate an inventory from Terraform state
+  hosts: localhost
+  roles:
+    - centralesupelec.mydocker.retrieve_state
+    - name: centralesupelec.mydocker.generate_inventory
+      vars:
+        terraform_state: "{{ retrieve_state_result }}"

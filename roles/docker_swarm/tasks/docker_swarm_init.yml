@@ -16,7 +16,7 @@
     advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"
     state: join
     join_token: "{{ docker_worker_join_token }}"
-    remote_addrs: ["{{ hostvars[groups['docker_swarm_manager'][0]]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"]
+    remote_addrs: [ "{{ hostvars[groups['docker_swarm_manager'][0]]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}" ]
 
 - name: Retrieve Swarm ID
   docker_host_info:
@@ -49,4 +49,4 @@
   docker_node:
     hostname: "{{ ansible_hostname }}"
     availability: drain
-  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  when: inventory_hostname == groups['docker_swarm_manager'][0] and inventory_hostname not in groups['docker_swarm_worker']

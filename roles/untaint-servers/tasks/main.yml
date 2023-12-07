@@ -1,7 +1,7 @@
 ---
 - name: init var
   set_fact:
-    tainted_servers: {}
+    tainted_servers: { }
 
 - name: save_servers
   include_tasks: save_server.yml

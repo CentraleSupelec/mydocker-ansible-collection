@@ -20,7 +20,7 @@ spring.jpa.hibernate.ddl-auto = validate
 spring.liquibase.change-log=classpath:dbschema/master.xml
 
 ## Go API Configuration
-go.app.address = {{ hostvars.manager.ansible_host }}
+go.app.address = {{ go_address }}
 go.app.port = 50000
 go.debug = {{ web_debug_grpc }}
 
@@ -35,16 +35,16 @@ spring.servlet.multipart.max-request-size=1GB
 scale-up.terraformStateUrl = {{ terraform_state_url }}
 spring.task.scheduling.pool.size=50
 
-spring.mail.host=smtp.tipimail.com
-spring.mail.port=587
-spring.mail.username={{ tipi_username }}
-spring.mail.password={{ tipi_password }}
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
-notification.mails.to[0]=arnaud.clauss@illuin-tech.com
-notification.mails.to[1]=paul.bizouard@centralesupelec.fr
-notification.mails.to[2]=paul.des-garets@illuin.tech
-notification.mails.from=noreply@mydocker-dev.centralesupelec.fr
+spring.mail.host={{ smtp_server }}
+spring.mail.port={{ smtp_port }}
+spring.mail.username={{ smtp_username }}
+spring.mail.password={{ smtp_password }}
+spring.mail.properties.mail.smtp.auth={{ smtp_auth }}
+spring.mail.properties.mail.smtp.starttls.enable={{ smtp_starttls }}
+{% for email in smtp_to %}
+notification.mails.to[{{ loop.index0 }}]={{ email }}
+{% endfor %}
+notification.mails.from={{ smtp_from }}
 
 log4j2.formatMsgNoLookups=true
 

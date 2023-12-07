@@ -27,7 +27,7 @@
   hosts: docker_swarm_worker
   become: true
   roles:
-    - role: gpu-pre-docker
+    - role: centralesupelec.mydocker.gpu_pre_docker
       when: gpu_type is defined
 
 - name: Install docker
@@ -40,9 +40,9 @@
         docker__daemon_json: "{{ gpu_pre_docker__daemon_json }}"
   roles:
     - role: "nickjj.docker"
-      tags: ["docker"]
+      tags: [ "docker" ]
     # Install NVIDIA docker runtime after Docker to avoid installing docker-ce as a default APT dependency for the driver
-    - role: gpu-post-docker
+    - role: centralesupelec.mydocker.gpu_post_docker
       when: gpu_type is defined
 
 - name: Install ssh keys
@@ -62,8 +62,10 @@
 - name: Create and configure docker swarm
   hosts: docker_swarm_manager:docker_swarm_worker
   roles:
-    - ceph-install
-    - docker-swarm
+    - centralesupelec.mydocker.ceph_install
+    - role: centralesupelec.mydocker.docker_swarm
+      vars:
+        docker_swarm_volume_backend: "{{ enable_ceph | ternary('rbd', 'fs') }}"
   become: yes
 
 - name: Create and configure swap on workers

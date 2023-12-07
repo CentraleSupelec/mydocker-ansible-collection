@@ -29,7 +29,7 @@
   when: ceph_user not in rbd_env_list.stdout
 
 - name: install docker cephfs plugin
-  command: "docker plugin install brindster/docker-plugin-cephfs --alias cephfs CLUSTER_NAME=ceph CLIENT_NAME={{ ceph_user }} SERVERS=10.97.211.93,10.97.75.93,10.97.71.93 --grant-all-permissions"
+  command: "docker plugin install brindster/docker-plugin-cephfs --alias cephfs CLUSTER_NAME=ceph CLIENT_NAME={{ ceph_user }} SERVERS={{ ceph_ips|join(',') }} --grant-all-permissions"
   when: '"cephfs" not in plugin_list.stdout'
 
 - name: get docker cephfs plugin env configuration

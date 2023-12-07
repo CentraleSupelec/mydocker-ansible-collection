@@ -2,3 +2,35 @@
 cas_base_url: https://cas.cloud.centralesupelec.fr/cas
 web_debug_grpc: "false"
 web_extra_application_properties: ~
+web_jvm_dir: '/usr/lib/jvm'
+web_pg_database: thuv
+web_pg_username: "{{ web_pg_database }}"
+web_pg_port: 5432
+web_pg_password: "{{ undef(hint='web_pg_password must be defined') }}"
+web_letsencrypt_email: "{{ undef(hint='web_letsencrypt_email must be defined') }}"
+web_url: "{{ undef(hint='web_url must be defined') }}"
+back_version: "{{ undef(hint='back_version must be defined') }}"
+front_version: "{{ undef(hint='front_version must be defined') }}"
+web_back_location: /usr/local/thuv/
+web_back_config_location: /etc/spring-configuration/
+web_back_environment: production
+web_back_private_key:
+web_back_public_key:
+web_back_port: 8080
+web_contexts_save: /opt/contexts/
+web_front_location: /var/www/front
+web_jwt_expiration: 86400000
+web_jwt_secret:
+web_sentry_dsn: ~
+env: ~
+smtp_auth: "true"
+smtp_starttls: "true"
+smtp_server: ~
+smtp_port: ~
+smtp_username: ~
+smtp_password: ~
+smtp_from: "mydocker@example.com"
+smtp_to: []
+web_deployment_delay_in_milliseconds: 300000
+terraform_state_url: "https://path.com/to/state.tf"
+go_address: "{{ inventory_hostname == groups['docker_swarm_manager'][0] | ternary('127.0.0.1',  hostvars[groups['docker_swarm_manager'][0]]['ansible_host']) }}"

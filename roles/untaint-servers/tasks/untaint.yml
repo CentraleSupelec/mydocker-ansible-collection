@@ -10,7 +10,7 @@
 
 - name: untaint server {{ item.value.name }}/{{ item.value.id }}
   command:
-    chdir:  "{{ terraform_dir }}"
+    chdir: "{{ terraform_dir }}"
     cmd: terraform untaint {{ item.key|quote }}
   when:
     - server_info.openstack_servers|length

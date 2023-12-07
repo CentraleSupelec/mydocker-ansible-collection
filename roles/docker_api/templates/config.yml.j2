@@ -7,33 +7,36 @@ PortMax: 15000
 DefaultNanoCPUsLimit: 2000000000
 DefaultMemoryBytesLimit: 1070000000
 BuildRegistryAddress: {{ registry_address }}
-BuildImage: "jq422pa7.gra7.container-registry.ovh.net/mydocker/kaniko:1.0.1"
-BuildImageRepository: "mydocker-{{ env }}"
+BuildImage: "{{ build_image }}"
+BuildImageRepository: "{{ build_image_repository }}"
 RegistryCredentials:
-  - Address: "{{ registry_address }}"
-    Username: "{{ registry_username }}"
-    Password:  "{{ registry_password }}"
+{% for registry in authenticated_registries %}
+  - Address: "{{ registry.address }}"
+    Username: "{{ registry.username }}"
+    Password:  "{{ registry.password }}"
+{% endfor %}
 LogLevel: "{{ golang_log_level }}"
 CephFSPrefix: "{{ env }}"
 CephCluster: "ceph"
 KeyringUser: "client.{{ ceph_user }}"
-CephPool: "mydocker-{{ env }}"
+CephPool: "{{ ceph_pool }}"
 CephServiceName: "{{ ceph_service_name }}"
 AdminImage: "{{ admin_image }}"
-DeployImage: "jq422pa7.gra7.container-registry.ovh.net/mydocker/deploy:{{ deploy_image_tag }}"
+DeployImage: "{{ deploy_image }}"
 Environment: "{{ env }}"
 AutoscalingStateBaseUrl: "{{ autoscaling_state_base_url }}"
 ScaleUpInterval: "{{ scale_up_interval }}"
 ScaleUpCooldown: "{{ scale_up_cooldown }}"
 ScaleDownInterval: "{{ scale_down_interval }}"
-EmailUsername: "{{ tipi_username }}"
-EmailPassword: "{{ tipi_password }}"
-EmailServer: "smtp.tipimail.com"
-EmailPort: 587
-EmailFrom: "noreply@mydocker-dev.centralesupelec.fr"
+EmailUsername: "{{ smtp_username }}"
+EmailPassword: "{{ smtp_password }}"
+EmailServer: "{{ smtp_server }}"
+EmailPort: {{ smtp_port }}
+EmailFrom: "{{ smtp_from }}"
 EmailTo:
-  - paul.des-garets@illuin.tech
-  - paul.bizouard@centralesupelec.fr
+{% for email in smtp_to %}
+  - {{ email }}
+{% endfor %}
 LogsTimeout: "500ms"
 ScaleDownRemoveNonEmpty: {{ scale_down_remove_non_empty | to_json }}
 DeployEnvSecrets:

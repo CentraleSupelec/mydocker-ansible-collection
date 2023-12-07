@@ -1,2 +1,0 @@
-docker_swarm_volume_backend: rbd # rbd OR fs
-docker_swarm_volume_plugin: centralesupelec/mydockervolume:latest

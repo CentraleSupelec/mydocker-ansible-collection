@@ -1,0 +1,6 @@
+- name: Configure Ceph backup
+  hosts: docker_swarm_manager
+  roles:
+    - role: centralesupelec.mydocker.ceph-backup
+      tags: ["ceph-backup"]
+  become: yes

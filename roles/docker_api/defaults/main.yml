@@ -1,0 +1,36 @@
+scale_up_interval: 10s
+golang_log_level: error
+scale_up_cooldown: 5m
+scale_down_interval: 5m
+scale_down_remove_non_empty: false
+admin_image: ~
+precreate_volume: "{{ enable_ceph | default(False) }}"
+docker_api_version: "{{ undef(hint='docker_api_version must be defined') }}"
+web_docker_api_location: /usr/local/thuv-api/
+registry_address: ~
+registry_username: ~
+registry_password: ~
+build_image: ~
+env: ~
+build_image_repository: "mydocker-{{ env }}"
+ceph_user: ~
+ceph_pool: "mydocker-{{ env }}"
+ceph_service_name: ~
+deploy_image: ~
+smtp_username: ~
+smtp_password: ~
+smtp_server: ~
+smtp_port: 587
+smtp_from: noreply@mydocker-dev.centralesupelec.fr
+smtp_to: []
+s3_backend_access_key: ~
+s3_backend_secret_key: ~
+ovh_consumer_key: ~
+ovh_application_secret: ~
+os_username: ~
+os_password: ~
+authenticated_registries:
+  - address: "{{ registry_address }}"
+    username: "{{ registry_username }}"
+    password: "{{ registry_password }}"
+autoscaling_state_base_url: ~

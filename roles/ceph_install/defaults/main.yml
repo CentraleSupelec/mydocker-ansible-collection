@@ -1,0 +1,4 @@
+ceph_user: "{{ undef(hint='ceph_user must be defined') }}"
+ceph_key: "{{ undef(hint='ceph_key must be defined') }}"
+ceph_ips: "{{ undef(hint='ceph_ips must be defined') }}"
+enable_ceph: False

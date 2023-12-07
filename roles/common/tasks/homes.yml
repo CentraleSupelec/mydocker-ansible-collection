@@ -7,5 +7,5 @@
     split: ":"
 
 - name: set fact
-  set_fact: 
+  set_fact:
     user_homes: "{{ user_homes | d({}) | combine({item: getent_passwd[item][4]}) }}"
