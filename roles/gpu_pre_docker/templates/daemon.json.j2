@@ -8,6 +8,7 @@
             "runtimeArgs": []
         }
     },
+    "exec-opts": ["native.cgroupdriver=cgroupfs"],
     "node-generic-resources": [
         {% if gpu_type is not defined or gpu_type == 'shared' %}
             "gpu=100"

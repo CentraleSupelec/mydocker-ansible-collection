@@ -16,10 +16,20 @@
     state: present
   register: gpu_install_cuda
 
+# https://github.com/NVIDIA/nvidia-docker/issues/1730
+- name: Configure devices for workaround
+  ansible.builtin.template:
+    src: "templates/71-nvidia-dev-char.rules.j2"
+    dest: "/lib/udev/rules.d/71-nvidia-dev-char.rules"
+    owner: root
+    group: root
+    mode: "0644"
+  register: gpu_nvidia_workaround
+
 - name: Reboot to load the drivers
   reboot:
     reboot_timeout: 300
-  when: gpu_install_cuda.changed
+  when: gpu_install_cuda.changed or gpu_nvidia_workaround.changed
 
 # Installing some Nvidia and Cuda packages install a package with the major version number in its name
 # So we retrieve them to pin the right package
