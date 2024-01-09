@@ -28,7 +28,7 @@ openssl rsa -traditional -pubout -in private_key.pem -out public_key.pem
 
 ### Using the playbooks
 
-- Create an inventory with the groups `web`, `docker_swarm_manager`, `docker_swarm_worker`
+- Create an inventory with the groups `web`, `docker_swarm_manager`, `docker_swarm_worker` :
 ```ini
 # inventories/myenv/hosts
 web_server ansible_host=ip.of.the.server ansible_user=ubuntu
@@ -42,7 +42,7 @@ web_server
 [docker_swarm_worker]
 web_server
 ```
-- Create variables files (of course, change those unsafe values, and store them safely, for instance with [ansible-vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html))
+- Create a file with the variables (of course, change those unsafe values, and store them safely, for instance with [ansible-vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html))
 ```yaml
 # inventories/myenv/group_vars/all/variables.yml
 back_version: 2.25.0
@@ -68,8 +68,8 @@ ansible-playbook -i inventories/myenv/hosts centralesupelec.mydocker.full_setup
 
 ### Make the first user an admin
 
-1. First, visit the new website https://mydocker.mydomain.com (directly or through Moodle)
-2. Then, connect to the server and run SQL commands :
+1. First, visit the new website https://mydocker.mydomain.com (directly or through Moodle) to create your account in the DB
+2. Then, connect to the server (SSH) and run following SQL command:
 ```shell
 sudo -u postgres psql thuv -c "UPDATE users_roles SET role_id = (SELECT id FROM roles WHERE name = 'ROLE_ADMIN') WHERE user_id = 1;"
 ```
@@ -90,8 +90,10 @@ Corresponding required variables :
 
 ## Feature : manually deploying nodes using MyDocker
 
+[//]: # (Todo: create the repository for building the deploy image)
 Requirements :
 * A docker image built using the dedicated repository
+* A terraform state stored on a S3 storage
 
 Corresponding required variables :
 * `deploy_image`
@@ -113,7 +115,6 @@ Corresponding required variables :
 
 Requirements :
 
-[//]: # (Todo: create the repository for building the deploy image)
 [//]: # (Todo: provide a more secure way to retrieve the state)
 * A docker image built using the dedicated repository
 * A terraform state stored on a S3 storage
@@ -134,6 +135,7 @@ Corresponding required variables :
 * `smtp_port`
 * `smtp_from`
 * `smtp_to`
+* `terraform_state_url`
 
 ## Feature : Ceph storage
 
