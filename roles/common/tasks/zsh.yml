@@ -40,11 +40,31 @@
     state: directory
   become: yes
 
-# rsync is much faster than copy
-- name: Copy oh-my-zsh
+- name: Create oh-my-zsh tmp folder
+  file:
+    path: /tmp/oh-my-zsh/
+    state: directory
+    owner: "{{ ansible_user }}"
+    recurse: true
+  become: yes
+
+# rsync is much faster than copy but does not work with passwordfull sudo
+- name: Copy oh-my-zsh to remote
   synchronize:
     src: "{{ common_local_tmp_folder }}/oh-my-zsh/"
-    dest: /etc/zsh/.oh-my-zsh/
+    dest: /tmp/oh-my-zsh
+  tags:
+    - copy
+    - zsh
+  become: no
+
+- name: Copy oh-my-zsh from remote to the right place
+  delegate_to: "{{ inventory_hostname }}"
+  synchronize:
+    src: /tmp/oh-my-zsh/
+    dest: /etc/zsh/.oh-my-zsh
+    owner: false
+    group: false
   tags:
     - copy
     - zsh
