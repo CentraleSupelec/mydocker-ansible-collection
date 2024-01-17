@@ -276,6 +276,13 @@
     dest: /opt/thuv/releases/front/{{ front_version }}/dist/NewMyDockerFront/assets/config.js
   become: yes
 
+- name: Bump front config timestamp
+  ansible.builtin.replace:
+    regexp: "CONFIG_TIMESTAMP"
+    replace: "{{ ansible_date_time.epoch }}"
+    path: /opt/thuv/releases/front/{{ front_version }}/dist/NewMyDockerFront/index.html
+  become: yes
+
 - name: Deploy frontend
   file:
     src: /opt/thuv/releases/front/{{ front_version }}/dist/NewMyDockerFront/
