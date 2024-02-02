@@ -2,7 +2,7 @@
 app.jwtSecret = {{ web_jwt_secret }}
 app.jwtExpirationInMs = {{ web_jwt_expiration }}
 app.cas.rscUrl={{ cas_base_url }}/p3/serviceValidate
-app.cas.service=https://{{ web_url }}/loginAccept
+app.cas.service=https://{{ public_web_url }}/loginAccept
 
 ## Spring DATASOURCE (DataSourceAutoConfiguration & DataSourceProperties)
 spring.datasource.url=jdbc:postgresql://localhost:{{ web_pg_port }}/{{web_pg_database}}
@@ -48,7 +48,7 @@ notification.mails.from={{ smtp_from }}
 
 log4j2.formatMsgNoLookups=true
 
-lti.base-path=https://{{ web_url }}/api
+lti.base-path=https://{{ public_web_url }}/api
 lti.private-key-path=file://{{ web_back_config_location }}/private-key.pem
 lti.public-key-path=file://{{ web_back_config_location }}/public-key.pem
 
