@@ -3,6 +3,9 @@ docker_swarm_volume_plugin: centralesupelec/mydockervolume:latest
 docker_swarm_port: 2377
 docker_swarm_seccomp_folder: /opt/docker-seccomp
 docker_swarm_seccomp_override: false
+docker_swarm_subnet: 10.0.0.0/8
+docker_swarm_unpublish_services: false # if "true" and network editing fails, you will have to manually republish service ports. If false and there are existing services, network editing is not attempted.
+docker_swarm_subnet_gateway: ~
 ceph_user: ~
 ceph_ips: ~
 env: ~
