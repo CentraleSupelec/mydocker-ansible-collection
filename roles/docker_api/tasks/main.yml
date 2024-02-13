@@ -5,7 +5,7 @@
     state: directory
     owner: "{{ ansible_user }}"
     mode: u=rwx,g=rx,o=rx
-  become: yes
+  become: true
 
 - name: Fetch docker_api
   ansible.builtin.get_url:
@@ -16,34 +16,35 @@
   ansible.builtin.unarchive:
     src: /opt/thuv/releases/docker_api/{{ docker_api_version }}/build.zip
     dest: /opt/thuv/releases/docker_api/{{ docker_api_version }}/
-    remote_src: yes
-  become: yes
+    remote_src: true
+  become: true
 
 - name: Add docker API systemd service
   ansible.builtin.template:
     src: thuv-docker.service.j2
     dest: /lib/systemd/system/thuv-docker.service
-  become: yes
+  become: true
   register: systemd_unit
 
-- name: force systemd to reread configs
-  ansible.builtin.systemd: daemon_reload=yes
-  become: yes
+- name: Force systemd to reread configs
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
   when: systemd_unit.changed
 
 - name: Create thuv API directory
   ansible.builtin.file:
     path: "{{ web_docker_api_location }}"
     state: directory
-  become: yes
+  become: true
 
-- name: ensure correct permissions
+- name: Ensure correct permissions
   ansible.builtin.file:
     path: /opt/thuv/releases/docker_api/{{ docker_api_version }}/docker-api/docker-api
     owner: root
     group: root
     mode: "u=rx,g=rx,o=r"
-  become: yes
+  become: true
 
 - name: Deploy docker API
   ansible.builtin.file:
@@ -51,25 +52,26 @@
     dest: "{{ web_docker_api_location }}docker-api"
     state: link
     mode: u=rx,g=rx,o=rx
-  become: yes
+  become: true
 
 - name: Create thuv back config directory
   ansible.builtin.file:
     path: "/etc/docker-api/"
     state: directory
-  become: yes
+  become: true
 
 - name: Add docker API config file
   ansible.builtin.template:
     src: config.yml.j2
     dest: "/etc/docker-api/config.yml"
-  become: yes
+  become: true
 
-- name: restart service Thuv docker API
+- name: Restart service Thuv docker API
   ansible.builtin.systemd:
     state: restarted
     name: thuv-docker
-  become: yes
+  become: true
 
 - name: Pull rsync image
-  ansible.builtin.shell: docker pull instrumentisto/rsync-ssh:latest
+  community.docker.docker_image_pull:
+    name: instrumentisto/rsync-ssh:latest

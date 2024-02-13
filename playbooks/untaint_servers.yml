@@ -3,6 +3,6 @@
   strategy: linear
   roles:
     - retrieve_state
-    - name: untaint_servers
+    - role: untaint_servers
       vars:
         terraform_state: "{{ retrieve_state_result }}"

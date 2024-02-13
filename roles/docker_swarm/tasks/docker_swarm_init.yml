@@ -6,7 +6,7 @@
   when: inventory_hostname == groups['docker_swarm_manager'][0]
 
 - name: Manager - Declare the workers join token as a fact
-  set_fact:
+  ansible.builtin.set_fact:
     docker_worker_join_token: "{{ swarm_info.swarm_facts.JoinTokens.Worker }}"
   delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
   run_once: true
@@ -16,7 +16,7 @@
     advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"
     state: join
     join_token: "{{ docker_worker_join_token }}"
-    remote_addrs: [ "{{ hostvars[groups['docker_swarm_manager'][0]]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}" ]
+    remote_addrs: ["{{ hostvars[groups['docker_swarm_manager'][0]]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"]
 
 - name: Retrieve Swarm ID
   community.docker.docker_host_info:

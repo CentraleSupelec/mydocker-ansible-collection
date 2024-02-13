@@ -1,35 +1,38 @@
 ---
-- name: register installed packages
+- name: Register installed packages
   ansible.builtin.package_facts:
 
-- name: register gpu
-  ansible.builtin.shell: "nvidia-smi -L"
+- name: Register gpu
+  ansible.builtin.command: "nvidia-smi -L"
   register: nvidia_smi
-  changed_when: False
+  changed_when: false
 
-- name: read docker daemon config
+- name: Read docker daemon config
   ansible.builtin.slurp:
     src: /etc/docker/daemon.json
   register: docker_daemon_config
 
-- name: read nvidia-container-runtime config
+- name: Read nvidia-container-runtime config
   ansible.builtin.slurp:
     src: /etc/nvidia-container-runtime/config.toml
   register: nvidia_container_runtime_config
 
-- ansible.builtin.assert:
+- name: Ensure Docker is installed and configured
+  ansible.builtin.assert:
     that:
       - "'docker-ce' in ansible_facts.packages"
-      - "'gpu=' in (docker_daemon_config.content|b64decode)"
+      - "'gpu=' in (docker_daemon_config.content | b64decode)"
     fail_msg: Docker must be configured
 
-- ansible.builtin.assert:
+- name: Ensure nvidia-docker2 is configured
+  ansible.builtin.assert:
     that:
       - "'nvidia-docker2' in ansible_facts.packages"
-      - "'\\nswarm-resource' in (nvidia_container_runtime_config.content|b64decode)"
+      - "'\\nswarm-resource' in (nvidia_container_runtime_config.content | b64decode)"
     fail_msg: nvidia-docker2 must be configured
 
-- ansible.builtin.assert:
+- name: Ensure there is a GPU and nvidia appropriate driver instaleld
+  ansible.builtin.assert:
     that:
       - "'GPU 0' in nvidia_smi.stdout"
     fail_msg: Nvidia driver must be installed

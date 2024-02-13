@@ -13,7 +13,7 @@
 
 - name: Update apt
   ansible.builtin.apt:
-    update_cache: "yes"
+    update_cache: true
   when: nvidia_runtime_apt.changed
 
 - name: Install nvidia-docker2

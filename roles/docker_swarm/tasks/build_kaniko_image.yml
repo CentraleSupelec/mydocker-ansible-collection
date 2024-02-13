@@ -9,6 +9,6 @@
     dest: /opt/kaniko-executor/Dockerfile
 
 - name: Create kaniko executor docker image
-  ansible.builtin.shell: "docker build -t kaniko-executor-my-docker ."
-  args:
-    chdir: /opt/kaniko-executor
+  community.docker.docker_image_build:
+    name: kaniko-executor-my-docker
+    path: /opt/kaniko-executor

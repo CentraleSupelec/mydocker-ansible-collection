@@ -3,13 +3,13 @@
   ansible.builtin.copy:
     src: listchanges.conf
     dest: '/etc/apt/listchanges.conf'
-  become: yes
+  become: true
 
 - name: Update and upgrade apt packages
-  become: yes
+  become: true
   ansible.builtin.apt:
-    upgrade: yes
-    update_cache: yes
+    upgrade: true
+    update_cache: true
   tags:
     - install
     - update
@@ -38,12 +38,12 @@
       - gnupg
       - curl
       - unzip
-    autoclean: "yes"
+    autoclean: true
     state: present
   tags:
     - install
     - update
-  become: yes
+  become: true
 
 - name: Set timezone to Europe/Paris
   community.general.timezone:
@@ -52,7 +52,7 @@
     - install
     - timezone
   notify: Restart rsyslog
-  become: yes
+  become: true
 
 - name: Generate locales
   community.general.locale_gen:
@@ -63,10 +63,10 @@
     - fr_FR.UTF-8
   tags:
     - install
-  become: yes
+  become: true
 
-- when: common_users is defined
-  name: Set shell to ZSH
+- name: Set shell to ZSH
+  when: common_users is defined
   ansible.builtin.user:
     name: "{{ item }}"
     shell: /bin/zsh
@@ -74,9 +74,10 @@
   tags:
     - install
     - zsh
-  become: yes
+  become: true
 
-- when: common_users is defined and (user_homes is undefined or item not in user_homes)
+- name: Include homes configuration
+  when: common_users is defined and (user_homes is undefined or item not in user_homes)
   ansible.builtin.include_tasks: homes.yml
   loop: "{{ common_users }}"
 
@@ -86,8 +87,8 @@
     - install
     - zsh
 
-- when: common_users is defined
-  name: screen configuration for users
+- name: Screen configuration for users
+  when: common_users is defined
   ansible.builtin.copy:
     src: screenrc
     dest: "{{ user_homes[item] }}/.screenrc"
@@ -95,16 +96,16 @@
     - install
     - screen
   loop: "{{ common_users }}"
-  become: yes
+  become: true
 
-- when: (common_ssh_authorized_keys | default({}) | length > 0) and (item.value | default([]) | length > 0)
-  name: Provision ssh keys
+- name: Provision ssh keys
+  when: (common_ssh_authorized_keys | default({}) | length > 0) and (item.value | default([]) | length > 0)
   ansible.posix.authorized_key:
     user: "{{ item.key }}"
     state: present
     key: "{{item.value | join('\n') if item.value is defined and item.value is iterable else ''}}"
-    exclusive: "yes"
-  loop: "{{ (common_ssh_authorized_keys|default({}))|dict2items }}"
+    exclusive: true
+  loop: "{{ (common_ssh_authorized_keys | default({})) | dict2items }}"
   tags:
     - ssh
 ...

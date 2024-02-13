@@ -1,11 +1,11 @@
 ---
-- name: getent
-  become: yes
+- name: Getent
+  become: true
   ansible.builtin.getent:
     database: passwd
     key: "{{ item }}"
     split: ":"
 
-- name: set fact
+- name: Set fact
   ansible.builtin.set_fact:
     user_homes: "{{ user_homes | d({}) | combine({item: getent_passwd[item][4]}) }}"

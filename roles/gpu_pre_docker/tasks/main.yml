@@ -1,12 +1,12 @@
 ---
 - name: Add nvidia cuda keyring
   ansible.builtin.apt:
-    deb: https://developer.download.nvidia.com/compute/cuda/repos/{{ ansible_distribution | lower }}{{ ansible_distribution_version|regex_replace('\.', '') }}/{{ ansible_architecture }}/{{ gpu_pre_docker_cuda_keyring_package }}
+    deb: https://developer.download.nvidia.com/compute/cuda/repos/{{ ansible_distribution | lower }}{{ ansible_distribution_version | regex_replace('\.', '') }}/{{ ansible_architecture }}/{{ gpu_pre_docker_cuda_keyring_package }}
   register: nvidia_cuda_apt
 
 - name: Update apt
   ansible.builtin.apt:
-    update_cache: "yes"
+    update_cache: true
   when: nvidia_cuda_apt.changed
 
 - name: Install cuda-drivers
@@ -34,7 +34,7 @@
 # Installing some Nvidia and Cuda packages install a package with the major version number in its name
 # So we retrieve them to pin the right package
 - name: Register nvidia/cuda packages
-  ansible.builtin.shell: "dpkg --get-selections | grep -E 'nvidia|cuda' | cut -f1"
+  ansible.builtin.shell: "set -o pipefail && dpkg --get-selections | grep -E 'nvidia|cuda' | cut -f1"
   register: nvidia_cuda_installed_packages
   changed_when: false
 

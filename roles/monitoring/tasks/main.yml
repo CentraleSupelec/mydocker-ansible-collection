@@ -4,22 +4,22 @@
     path: /var/log/journal
     state: directory
 
-- name: ensure correct permissions
+- name: Ensure correct permissions
   ansible.builtin.file:
     path: /var/log/journal
-    recurse: "yes"
+    recurse: true
     owner: root
     group: systemd-journal
 
 - name: Check if datadog is installed
   ansible.builtin.shell: dpkg-query -l datadog-agent 2>&1
   register: deb_datadog_check
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Add datadog-agent to systemd-journald group
   ansible.builtin.user:
     name: dd-agent
-    append: yes
+    append: true
     groups:
       - systemd-journal
   when: deb_datadog_check.stdout.find('no packages found') == -1
@@ -28,14 +28,14 @@
 - name: Check if docker is installed
   ansible.builtin.shell: dpkg-query -l docker 2>&1
   register: deb_docker_check
-  ignore_errors: yes
+  ignore_errors: true
   tags:
     - docker
 
 - name: Add datadog-agent to docker group if docker and datadog are installed
   ansible.builtin.user:
     name: dd-agent
-    append: yes
+    append: true
     groups:
       - docker
   when: deb_docker_check.stdout.find('no packages found') == -1 and deb_datadog_check.stdout.find('no packages found') == -1

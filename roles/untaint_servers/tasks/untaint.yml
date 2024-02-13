@@ -1,26 +1,26 @@
 ---
-- name: retrieve info for {{ item.value.name }}/{{ item.value.id }}
+- name: Retrieve info for {{ item.value.name }}/{{ item.value.id }}
   openstack.cloud.server_info:
     server: "{{ item.value.id }}"
-  ignore_errors: yes
+  ignore_errors: true
   register: server_info
-  check_mode: no
+  check_mode: false
   environment:
     OS_REGION_NAME: "{{ item.value.region }}"
 
-- name: untaint server {{ item.value.name }}/{{ item.value.id }}
+- name: Untaint server {{ item.value.name }}/{{ item.value.id }}
   ansible.builtin.command:
     chdir: "{{ terraform_dir }}"
-    cmd: terraform untaint {{ item.key|quote }}
+    cmd: terraform untaint {{ item.key | quote }}
   when:
-    - server_info.openstack_servers|length
+    - server_info.openstack_servers | length
     - server_info.openstack_servers.0["OS-EXT-STS:vm_state"] == "active"
     - server_info.openstack_servers.0["OS-EXT-STS:power_state"] == 1
   notify: refresh terraform state
 
-- name: remove named server in error {{ item.value.name }}/{{ item.value.id }} from TFVARS
+- name: Remove named server in error {{ item.value.name }}/{{ item.value.id }} from TFVARS
   when:
-    - server_info.openstack_servers|length
+    - server_info.openstack_servers | length
     - server_info.openstack_servers.0["OS-EXT-STS:vm_state"] == "error"
     - item.value.name in named_workers
   ansible.builtin.set_fact:

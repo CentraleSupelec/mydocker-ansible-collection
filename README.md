@@ -5,8 +5,8 @@ Collection with roles and playbooks to get [MyDocker](https://github.com/Central
 ## Variables
 
 ```yaml
-enable_datadog: False
-enable_ceph: False
+enable_datadog: false
+enable_ceph: false
 ```
 
 ## Usage
@@ -45,9 +45,9 @@ web_server
 - Create a file with the variables (of course, change those unsafe values, and store them safely, for instance with [ansible-vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html))
 ```yaml
 # inventories/myenv/group_vars/all/variables.yml
-back_version: 2.25.0
-front_version: 2.24.1
-docker_api_version: 2.16.0
+back_version: 2.26.0
+front_version: 2.24.2
+docker_api_version: 2.16.1
 web_pg_password: password
 web_jwt_secret: secret
 web_url: mydocker.mydomain.com
@@ -79,14 +79,13 @@ sudo -u postgres psql thuv -c "UPDATE users_roles SET role_id = (SELECT id FROM 
 
 Requirements :
 * A docker registry with credentials to push and pull set in variables 
-* A docker image containing those credentials based on [Kaniko](https://github.com/GoogleContainerTools/kaniko) (see below to generate such image)
 
 Corresponding required variables :
 * `registry_address`
 * `registry_username`
 * `registry_password`
-* `build_image`
 * `build_image_repository` (namespace where built images will be pushed)
+* `build_image` (defaults to `docker.io/centralesupelec/kaniko`; must be a Kaniko debug image with a mechanism authorizing to push to `registry_address`)
 
 ## Feature : manually deploying nodes using MyDocker
 
@@ -149,5 +148,4 @@ Corresponding required variables :
 * `ceph_key`
 * `ceph_service_name` : OVH service name to create ACL
 
-## How To : generate an image based on Kaniko with credentials to build and push new images
 

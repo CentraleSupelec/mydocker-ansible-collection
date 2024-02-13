@@ -3,8 +3,8 @@
   ansible.builtin.apt:
     name:
       - python3-pip
-    autoclean: "yes"
-    update_cache: "yes"
+    autoclean: true
+    update_cache: true
     state: present
   tags:
     - install
@@ -13,12 +13,12 @@
 - name: Install docker module
   ansible.builtin.pip:
     name: docker
-    extra_args: "{{ (ansible_python.version.minor > 10) |ternary('--break-system-packages', '') }}"
+    extra_args: "{{ (ansible_python.version.minor > 10) | ternary('--break-system-packages', '') }}"
   tags:
     - install
     - update
 
-- name: create directories for plugin
+- name: Create directories for plugin
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -47,7 +47,7 @@
     - docker_swarm_init
 
 - name: Include subnet fixing tasks
-  ansible.builtin.import_tasks: fix_subnet.yml
+  ansible.builtin.include_tasks: fix_subnet.yml
   when: inventory_hostname == groups['docker_swarm_manager'][0]
   tags:
     - docker_swarm_init

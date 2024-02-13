@@ -4,8 +4,8 @@
     name:
       - ceph
       - ceph-common
-    autoclean: "yes"
-    update_cache: "yes"
+    autoclean: true
+    update_cache: true
   tags:
     - install
     - update

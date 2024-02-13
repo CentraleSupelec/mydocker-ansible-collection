@@ -3,13 +3,14 @@
   vars_prompt:
     - name: image
       prompt: Please provide image name
-      private: no
+      private: false
   tasks:
     - name: Log into private registry
       community.docker.docker_login:
         registry: "{{ registry_address }}"
         username: "{{ registry_username }}"
         password: "{{ registry_password }}"
-        reauthorize: yes
+        reauthorize: true
     - name: Pull docker image
-      ansible.builtin.shell: "docker pull {{ image }}"
+      community.docker.docker_image_pull:
+        name: "{{ image }}"

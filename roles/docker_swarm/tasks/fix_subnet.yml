@@ -9,23 +9,28 @@
     services: true
   register: docker_swarm_services
 
-- ansible.builtin.set_fact:
-    docker_swarm_subnet_gateway: "{{ docker_swarm_subnet_gateway is defined|ternary(docker_swarm_subnet_gateway, docker_swarm_subnet|ansible.utils.ipaddr('next_usable')) }}"
+- name: Set variable docker_swarm_subnet_gateway
+  ansible.builtin.set_fact:
+    docker_swarm_subnet_gateway: >- 
+      {{ docker_swarm_subnet_gateway is defined |
+      ternary(docker_swarm_subnet_gateway, docker_swarm_subnet |
+      ansible.utils.ipaddr('next_usable')) }}
 
-- ansible.builtin.set_fact:
+- name: Set variable should_fix_subnet
+  ansible.builtin.set_fact:
     should_fix_subnet: |-
       {{ (
         (not ingress_network_info.exists) or
         (ingress_network_info.network['IPAM']['Config'][0]['Subnet'] != docker_swarm_subnet) or
         (ingress_network_info.network['IPAM']['Config'][0]['Gateway'] != docker_swarm_subnet_gateway)
       ) and (
-        (docker_swarm_services.services|length) == 0 or
+        (docker_swarm_services.services | length) == 0 or
         docker_swarm_unpublish_services
       ) }}
 
 - name: Disconnect services
   ansible.builtin.command: docker service update --publish-rm={{ item.1.TargetPort }} {{ item.0.ID }}
-  loop: "{{ docker_swarm_services.services|subelements('Ports') }}"
+  loop: "{{ docker_swarm_services.services | subelements('Ports') }}"
   when: should_fix_subnet
 
 - when: should_fix_subnet
@@ -46,4 +51,4 @@
   always:
     - name: Reconnect services
       ansible.builtin.command: docker service update --publish-add target={{ item.1.TargetPort }},{% if item.1.PublishedPort is defined %}published={{ item.1.PublishedPort }},{% endif %}protocol={{ item.1.Protocol }} {{ item.0.ID }}
-      loop: "{{ docker_swarm_services.services|subelements('Ports') }}"
+      loop: "{{ docker_swarm_services.services | subelements('Ports') }}"

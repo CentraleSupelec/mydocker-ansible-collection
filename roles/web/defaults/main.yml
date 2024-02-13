@@ -27,7 +27,7 @@ env: ~
 smtp_auth: "true"
 smtp_starttls: "true"
 smtp_server: ~
-smtp_port: ~
+smtp_port: 587
 smtp_username: ~
 smtp_password: ~
 smtp_from: "mydocker@example.com"

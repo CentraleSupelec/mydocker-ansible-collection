@@ -4,9 +4,9 @@
     path: "{{ common_local_tmp_folder }}/oh-my-zsh"
     state: directory
   delegate_to: localhost
-  run_once: "yes"
+  run_once: true
   vars:
-    ansible_become: "no"
+    ansible_become: false
 
 - name: Clone oh-my-zsh
   ansible.builtin.git:
@@ -14,9 +14,9 @@
     dest: "{{ common_local_tmp_folder }}/oh-my-zsh"
     version: master
   delegate_to: localhost
-  run_once: "yes"
+  run_once: true
   vars:
-    ansible_become: "no"
+    ansible_become: false
   tags:
     - install
     - zsh
@@ -27,9 +27,9 @@
     dest: "{{ common_local_tmp_folder }}/oh-my-zsh/custom/themes/oh-my-via"
     version: master
   delegate_to: localhost
-  run_once: "yes"
+  run_once: true
   vars:
-    ansible_become: "no"
+    ansible_become: false
   tags:
     - install
     - zsh
@@ -38,7 +38,7 @@
   ansible.builtin.file:
     path: /etc/zsh/.oh-my-zsh
     state: directory
-  become: yes
+  become: true
 
 - name: Create oh-my-zsh tmp folder
   ansible.builtin.file:
@@ -46,7 +46,7 @@
     state: directory
     owner: "{{ ansible_user }}"
     recurse: true
-  become: yes
+  become: true
 
 # rsync is much faster than copy but does not work with passwordfull sudo
 - name: Copy oh-my-zsh to remote
@@ -56,7 +56,7 @@
   tags:
     - copy
     - zsh
-  become: no
+  become: false
 
 - name: Copy oh-my-zsh from remote to the right place
   delegate_to: "{{ inventory_hostname }}"
@@ -68,16 +68,16 @@
   tags:
     - copy
     - zsh
-  become: yes
+  become: true
 
-- name: ensure correct permissions
+- name: Ensure correct permissions
   ansible.builtin.file:
     path: /etc/zsh/.oh-my-zsh/
-    recurse: "yes"
+    recurse: true
     owner: root
     group: root
     mode: "g-w"
-  become: yes
+  become: true
 
 - name: Copy zshrc
   ansible.builtin.copy:
@@ -87,14 +87,14 @@
     - install
     - update
     - zsh
-  become: yes
+  become: true
 
-- when: common_users is defined
-  name: Create an empty .zshrc
+- name: Create an empty .zshrc
+  when: common_users is defined
   ansible.builtin.copy:
     content: ""
     dest: "{{ user_homes[item] }}/.zshrc"
-    force: "no"
+    force: false
   loop: "{{ common_users }}"
-  become: yes
+  become: true
 ...

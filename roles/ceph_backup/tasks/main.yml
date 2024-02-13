@@ -28,7 +28,7 @@
   community.postgresql.postgresql_db:
     name: "{{ backy2_db_database }}"
     encoding: UTF-8
-  become: yes
+  become: true
   vars:
     ansible_ssh_pipelining: true
   become_user: postgres
@@ -39,7 +39,7 @@
     name: "{{ backy2_db_username }}"
     password: "{{ backy2_db_password }}"
     priv: "ALL"
-  become: yes
+  become: true
   vars:
     ansible_ssh_pipelining: true
   become_user: postgres

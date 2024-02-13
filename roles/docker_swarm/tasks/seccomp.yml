@@ -16,7 +16,7 @@
 
 - name: Enable seccomp profile
   ansible.builtin.replace:
-    backup: yes
+    backup: true
     dest: /lib/systemd/system/docker.service
     regexp: '^(ExecStart=\/usr\/bin\/dockerd -H fd:\/\/(?!.*--seccomp-profile {{ docker_swarm_seccomp_folder }}\/seccomp.json\b).*)$'
     replace: '\1 --seccomp-profile {{ docker_swarm_seccomp_folder }}/seccomp.json'
@@ -26,6 +26,6 @@
 - name: Restart docker service on change
   ansible.builtin.systemd:
     state: restarted
-    daemon_reload: yes
+    daemon_reload: true
     name: docker
   when: enable_seccomp_profile.changed
