@@ -1,18 +1,18 @@
 ---
 - name: Get network info
-  docker_network_info:
+  community.docker.docker_network_info:
     name: ingress
   register: ingress_network_info
 
 - name: List services
-  docker_swarm_info:
+  community.docker.docker_swarm_info:
     services: true
   register: docker_swarm_services
 
-- set_fact:
+- ansible.builtin.set_fact:
     docker_swarm_subnet_gateway: "{{ docker_swarm_subnet_gateway is defined|ternary(docker_swarm_subnet_gateway, docker_swarm_subnet|ansible.utils.ipaddr('next_usable')) }}"
 
-- set_fact:
+- ansible.builtin.set_fact:
     should_fix_subnet: |-
       {{ (
         (not ingress_network_info.exists) or
@@ -24,14 +24,14 @@
       ) }}
 
 - name: Disconnect services
-  command: docker service update --publish-rm={{ item.1.TargetPort }} {{ item.0.ID }}
+  ansible.builtin.command: docker service update --publish-rm={{ item.1.TargetPort }} {{ item.0.ID }}
   loop: "{{ docker_swarm_services.services|subelements('Ports') }}"
   when: should_fix_subnet
 
 - when: should_fix_subnet
   block:
     - name: Remove network
-      uri:
+      ansible.builtin.uri:
         unix_socket: /var/run/docker.sock
         url: http://localhost/networks/ingress
         method: DELETE
@@ -39,11 +39,11 @@
           - 204
       when: ingress_network_info.exists
     - name: Wait to make docker aware of the network deletion
-      pause:
+      ansible.builtin.pause:
         seconds: 2
     - name: Create network
-      command: docker network create --driver overlay --ingress --subnet={{ docker_swarm_subnet }} --gateway={{ docker_swarm_subnet_gateway }} ingress
+      ansible.builtin.command: docker network create --driver overlay --ingress --subnet={{ docker_swarm_subnet }} --gateway={{ docker_swarm_subnet_gateway }} ingress
   always:
     - name: Reconnect services
-      command: docker service update --publish-add target={{ item.1.TargetPort }},{% if item.1.PublishedPort is defined %}published={{ item.1.PublishedPort }},{% endif %}protocol={{ item.1.Protocol }} {{ item.0.ID }}
+      ansible.builtin.command: docker service update --publish-add target={{ item.1.TargetPort }},{% if item.1.PublishedPort is defined %}published={{ item.1.PublishedPort }},{% endif %}protocol={{ item.1.Protocol }} {{ item.0.ID }}
       loop: "{{ docker_swarm_services.services|subelements('Ports') }}"

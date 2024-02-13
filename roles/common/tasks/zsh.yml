@@ -1,6 +1,6 @@
 ---
 - name: Create tmp folder
-  file:
+  ansible.builtin.file:
     path: "{{ common_local_tmp_folder }}/oh-my-zsh"
     state: directory
   delegate_to: localhost
@@ -9,7 +9,7 @@
     ansible_become: "no"
 
 - name: Clone oh-my-zsh
-  git:
+  ansible.builtin.git:
     repo: https://github.com/robbyrussell/oh-my-zsh
     dest: "{{ common_local_tmp_folder }}/oh-my-zsh"
     version: master
@@ -22,7 +22,7 @@
     - zsh
 
 - name: Clone oh-my-via
-  git:
+  ansible.builtin.git:
     repo: https://github.com/badouralix/oh-my-via
     dest: "{{ common_local_tmp_folder }}/oh-my-zsh/custom/themes/oh-my-via"
     version: master
@@ -35,13 +35,13 @@
     - zsh
 
 - name: Create oh-my-zsh installation folder
-  file:
+  ansible.builtin.file:
     path: /etc/zsh/.oh-my-zsh
     state: directory
   become: yes
 
 - name: Create oh-my-zsh tmp folder
-  file:
+  ansible.builtin.file:
     path: /tmp/oh-my-zsh/
     state: directory
     owner: "{{ ansible_user }}"
@@ -50,7 +50,7 @@
 
 # rsync is much faster than copy but does not work with passwordfull sudo
 - name: Copy oh-my-zsh to remote
-  synchronize:
+  ansible.posix.synchronize:
     src: "{{ common_local_tmp_folder }}/oh-my-zsh/"
     dest: /tmp/oh-my-zsh
   tags:
@@ -60,7 +60,7 @@
 
 - name: Copy oh-my-zsh from remote to the right place
   delegate_to: "{{ inventory_hostname }}"
-  synchronize:
+  ansible.posix.synchronize:
     src: /tmp/oh-my-zsh/
     dest: /etc/zsh/.oh-my-zsh
     owner: false
@@ -71,7 +71,7 @@
   become: yes
 
 - name: ensure correct permissions
-  file:
+  ansible.builtin.file:
     path: /etc/zsh/.oh-my-zsh/
     recurse: "yes"
     owner: root
@@ -80,7 +80,7 @@
   become: yes
 
 - name: Copy zshrc
-  copy:
+  ansible.builtin.copy:
     src: zshrc
     dest: /etc/zsh/zshrc
   tags:
@@ -91,7 +91,7 @@
 
 - when: common_users is defined
   name: Create an empty .zshrc
-  copy:
+  ansible.builtin.copy:
     content: ""
     dest: "{{ user_homes[item] }}/.zshrc"
     force: "no"

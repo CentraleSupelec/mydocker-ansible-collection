@@ -1,23 +1,23 @@
 ---
 - name: Creates journald directory to write logs persistently on disk
-  file:
+  ansible.builtin.file:
     path: /var/log/journal
     state: directory
 
 - name: ensure correct permissions
-  file:
+  ansible.builtin.file:
     path: /var/log/journal
     recurse: "yes"
     owner: root
     group: systemd-journal
 
 - name: Check if datadog is installed
-  shell: dpkg-query -l datadog-agent 2>&1
+  ansible.builtin.shell: dpkg-query -l datadog-agent 2>&1
   register: deb_datadog_check
   ignore_errors: yes
 
 - name: Add datadog-agent to systemd-journald group
-  user:
+  ansible.builtin.user:
     name: dd-agent
     append: yes
     groups:
@@ -26,14 +26,14 @@
   notify: Restart Datadog agent
 
 - name: Check if docker is installed
-  shell: dpkg-query -l docker 2>&1
+  ansible.builtin.shell: dpkg-query -l docker 2>&1
   register: deb_docker_check
   ignore_errors: yes
   tags:
     - docker
 
 - name: Add datadog-agent to docker group if docker and datadog are installed
-  user:
+  ansible.builtin.user:
     name: dd-agent
     append: yes
     groups:

@@ -9,7 +9,7 @@
     OS_REGION_NAME: "{{ item.value.region }}"
 
 - name: untaint server {{ item.value.name }}/{{ item.value.id }}
-  command:
+  ansible.builtin.command:
     chdir: "{{ terraform_dir }}"
     cmd: terraform untaint {{ item.key|quote }}
   when:
@@ -23,5 +23,5 @@
     - server_info.openstack_servers|length
     - server_info.openstack_servers.0["OS-EXT-STS:vm_state"] == "error"
     - item.value.name in named_workers
-  set_fact:
+  ansible.builtin.set_fact:
     named_workers: "{{ named_workers | dict2items | rejectattr('key', 'equalto', item.value.name) | items2dict }}"

@@ -1,6 +1,6 @@
 ---
 - name: Install Ceph dependencies
-  apt:
+  ansible.builtin.apt:
     name:
       - ceph
       - ceph-common
@@ -13,21 +13,21 @@
 
 - name: Create ceph dir
   when: enable_ceph
-  file:
+  ansible.builtin.file:
     path: /etc/ceph
     state: directory
     mode: '0755'
 
 - name: Install Ceph config file
   when: enable_ceph
-  template:
+  ansible.builtin.template:
     src: ceph.conf.j2
     dest: /etc/ceph/ceph.conf
   become: true
 
 - name: Install Ceph keyring file
   when: enable_ceph
-  template:
+  ansible.builtin.template:
     src: ceph.client.ceph_user.keyring.j2
     dest: /etc/ceph/ceph.client.{{ ceph_user }}.keyring
   become: true

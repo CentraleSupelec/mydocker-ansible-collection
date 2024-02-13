@@ -1,5 +1,5 @@
 ---
 - name: refresh terraform state
-  command:
+  ansible.builtin.command:
     chdir: "{{ terraform_dir }}"
     cmd: terraform refresh

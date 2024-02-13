@@ -1,0 +1,15 @@
+- name: Create and configure docker swarm
+  hosts: docker_swarm_worker
+  vars_prompt:
+    - name: image
+      prompt: Please provide image name
+      private: no
+  tasks:
+    - name: Log into private registry
+      community.docker.docker_login:
+        registry: "{{ registry_address }}"
+        username: "{{ registry_username }}"
+        password: "{{ registry_password }}"
+        reauthorize: yes
+    - name: Pull docker image
+      ansible.builtin.shell: "docker pull {{ image }}"

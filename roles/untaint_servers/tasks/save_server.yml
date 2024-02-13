@@ -1,6 +1,6 @@
 ---
 - name: add server
-  set_fact:
+  ansible.builtin.set_fact:
     tainted_servers: "{{ tainted_servers | combine({ resource.module + '.' + resource.type + '.' + resource.name: instance.attributes }) }}"
   loop: "{{ resource.instances }}"
   when: (instance.status|default("")) == "tainted"

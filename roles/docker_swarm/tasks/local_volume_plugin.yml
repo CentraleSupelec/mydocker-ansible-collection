@@ -1,8 +1,8 @@
 - name: check if centralesupelec/mydockervolume plugin already installed
-  command: docker plugin list
+  ansible.builtin.command: docker plugin list
   register: plugin_list
   changed_when: false
 
 - name: install docker centralesupelec/mydockervolume plugin
-  command: "docker plugin install {{ docker_swarm_volume_plugin }} --alias=centralesupelec/mydockervolume LOG_LEVEL=debug DRIVER_MODE=FS --grant-all-permissions"
+  ansible.builtin.command: "docker plugin install {{ docker_swarm_volume_plugin }} --alias=centralesupelec/mydockervolume LOG_LEVEL=debug DRIVER_MODE=FS --grant-all-permissions"
   when: '"centralesupelec/mydockervolume" not in plugin_list.stdout'

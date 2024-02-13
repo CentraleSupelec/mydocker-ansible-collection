@@ -1,6 +1,6 @@
 ---
 - name: Install pip
-  apt:
+  ansible.builtin.apt:
     name:
       - python3-pip
     autoclean: "yes"
@@ -11,7 +11,7 @@
     - update
 
 - name: Install docker module
-  pip:
+  ansible.builtin.pip:
     name: docker
     extra_args: "{{ (ansible_python.version.minor > 10) |ternary('--break-system-packages', '') }}"
   tags:
@@ -19,7 +19,7 @@
     - update
 
 - name: create directories for plugin
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: '0755'
@@ -30,29 +30,29 @@
     - /mnt/mydocker-fs
 
 - name: Include Docker Swarm plugins tasks (centralesupelec/mydockervolume, ceph)
-  import_tasks: ceph_plugin.yml
+  ansible.builtin.import_tasks: ceph_plugin.yml
   when: 'docker_swarm_volume_backend == "rbd"'
   tags:
     - docker_install_plugin
 
 - name: Include Docker Swarm plugins tasks (centralesupelec/mydockervolume, ceph)
-  import_tasks: local_volume_plugin.yml
+  ansible.builtin.import_tasks: local_volume_plugin.yml
   when: 'docker_swarm_volume_backend == "fs"'
   tags:
     - docker_install_plugin
 
 - name: Include Docker Swarm init tasks
-  import_tasks: docker_swarm_init.yml
+  ansible.builtin.import_tasks: docker_swarm_init.yml
   tags:
     - docker_swarm_init
 
 - name: Include subnet fixing tasks
-  import_tasks: fix_subnet.yml
+  ansible.builtin.import_tasks: fix_subnet.yml
   when: inventory_hostname == groups['docker_swarm_manager'][0]
   tags:
     - docker_swarm_init
 
 - name: Include seccomp tasks
-  import_tasks: seccomp.yml
+  ansible.builtin.import_tasks: seccomp.yml
   tags:
     - docker_swarm_seccomp
