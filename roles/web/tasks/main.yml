@@ -1,44 +1,44 @@
 ---
 - name: Install basic utilities
-  apt:
+  ansible.builtin.apt:
     name:
       - nginx-full
       - postgresql
       - python3-psycopg2
       - letsencrypt
-    autoclean: "yes"
-    update_cache: "yes"
+    autoclean: true
+    update_cache: true
     state: present
-  become: yes
+  become: true
 
 - name: Copy install-jdk.sh
-  copy:
+  ansible.builtin.copy:
     src: install-jdk.sh
     dest: /opt/install-jdk.sh
     mode: u=rwx,g=rx,o=rx
-  become: yes
+  become: true
 
 - name: Check if openjdk is already installed
-  stat:
+  ansible.builtin.stat:
     path: "{{ web_jvm_dir }}/openjdk17"
   register: openjdk_directory
 
 - name: Install openjdk 17
-  shell: "/opt/install-jdk.sh -F 17 --target {{ web_jvm_dir }}/openjdk17"
+  ansible.builtin.command: "/opt/install-jdk.sh -F 17 --target {{ web_jvm_dir }}/openjdk17"
   when: not openjdk_directory.stat.exists
-  become: yes
+  become: true
 
-- name: list server certificates
-  find:
+- name: List server certificates
+  ansible.builtin.find:
     paths: /usr/share/ca-certificates
     patterns: "*.crt"
-    recurse: yes
+    recurse: true
   register: certificates_list
   when: not openjdk_directory.stat.exists
 
-- name: import server certificates in java keystore
-  become: yes
-  java_cert:
+- name: Import server certificates in java keystore
+  become: true
+  community.general.java_cert:
     cert_path: "{{ item.path }}"
     keystore_path: "{{ web_jvm_dir }}/openjdk17/lib/security/cacerts"
     executable: "{{ web_jvm_dir }}/openjdk17/bin/keytool"
@@ -51,28 +51,28 @@
   loop: "{{ certificates_list.files }}"
 
 - name: Check if sentry-cli is installed
-  shell: "command -v sentry-cli >/dev/null 2>&1"
+  ansible.builtin.shell: "command -v sentry-cli >/dev/null 2>&1"
   register: is_sentry_cli_installed
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Download sentry-cli
-  get_url:
+  ansible.builtin.get_url:
     url: https://sentry.io/get-cli/
     dest: /tmp/sentry-cli-installer.sh
     mode: u=rwx,g=rx,o=rx
   when: is_sentry_cli_installed.rc
 
 - name: Install sentry-cli
-  shell: "bash /tmp/sentry-cli-installer.sh"
-  become: yes
+  ansible.builtin.command: "/tmp/sentry-cli-installer.sh"
+  become: true
   when: is_sentry_cli_installed.rc
 
 - name: Install datadog javaagent
-  get_url:
+  ansible.builtin.get_url:
     url: https://search.maven.org/classic/remote_content?g=com.datadoghq&a=dd-java-agent&v=LATEST
     dest: /opt/dd-java-agent.jar
     mode: u=rwx,g=rx,o=rx
-  become: yes
+  become: true
 
 # Configure postgresql
 
@@ -80,7 +80,7 @@
   community.postgresql.postgresql_db:
     name: "{{ web_pg_database }}"
     encoding: UTF-8
-  become: yes
+  become: true
   vars:
     ansible_ssh_pipelining: true
   become_user: postgres
@@ -90,7 +90,7 @@
     db: "{{ web_pg_database }}"
     name: "{{ web_pg_username }}"
     password: "{{ web_pg_password }}"
-  become: yes
+  become: true
   vars:
     ansible_ssh_pipelining: true
   become_user: postgres
@@ -101,7 +101,7 @@
     obj_name: "{{ web_pg_database }}"
     obj_type: "database"
     new_owner: "{{ web_pg_username }}"
-  become: yes
+  become: true
   vars:
     ansible_ssh_pipelining: true
   become_user: postgres
@@ -110,256 +110,256 @@
   community.postgresql.postgresql_ext:
     db: "{{ web_pg_database }}"
     name: "citext"
-  become: yes
+  become: true
   vars:
     ansible_ssh_pipelining: true
   become_user: postgres
 
 # Configure nginx
 - name: Check whether port 443 is available
-  wait_for:
+  ansible.builtin.wait_for:
     port: 443
     state: stopped
     timeout: 10
-  ignore_errors: yes
+  ignore_errors: true
   register: is_nginx_not_configured
   tags: nginx_install
 
 # if not available, then it means we need to setup the web server
 - name: Create letsencrypt directory
-  file:
+  ansible.builtin.file:
     name: /var/www/letsencrypt
     state: directory
-  become: yes
+  become: true
   when: is_nginx_not_configured is succeeded
   tags:
     - nginx_install
     - letsencrypt
 
 - name: Install system nginx config
-  copy:
+  ansible.builtin.copy:
     src: nginx.conf
     dest: /etc/nginx/nginx.conf
-  become: yes
+  become: true
   when: is_nginx_not_configured is succeeded
   tags: nginx_install
 
 - name: Install system nginxconfig.io config
-  copy:
+  ansible.builtin.copy:
     src: nginxconfig.io
     dest: /etc/nginx
-  become: yes
+  become: true
   when: is_nginx_not_configured is succeeded
   tags: nginx_install
 
 - name: Remove default nginx config
-  file:
+  ansible.builtin.file:
     name: /etc/nginx/sites-enabled/default
     state: absent
-  become: yes
+  become: true
   when: is_nginx_not_configured is succeeded
   tags: nginx_install
 
 - name: Install nginx site for letsencrypt requests
-  template:
+  ansible.builtin.template:
     src: templates/nginx-http.j2
     dest: /etc/nginx/sites-enabled/http
-  become: yes
+  become: true
   register: changed_nginx_config
   tags:
     - nginx_install
     - letsencrypt
 
 - name: Reload nginx to activate letsencrypt site
-  service:
+  ansible.builtin.service:
     name: nginx
     state: restarted
-  become: yes
+  become: true
   when: changed_nginx_config.changed
   tags:
     - nginx_install
     - letsencrypt
 
 - name: Create letsencrypt certificate
-  shell: letsencrypt certonly -n --webroot -w /var/www/letsencrypt -m {{ web_letsencrypt_email }} --agree-tos -d {{ web_url }}
+  ansible.builtin.command: letsencrypt certonly -n --webroot -w /var/www/letsencrypt -m {{ web_letsencrypt_email }} --agree-tos -d {{ web_url }}
   args:
     creates: /etc/letsencrypt/live/{{ web_url }}
-  become: yes
+  become: true
   when: is_nginx_not_configured is succeeded
   tags:
     - nginx_install
     - letsencrypt
 
 - name: Generate dhparams
-  shell: openssl dhparam -out /etc/nginx/dhparam.pem 2048
+  ansible.builtin.command: openssl dhparam -out /etc/nginx/dhparam.pem 2048
   args:
     creates: /etc/nginx/dhparam.pem
-  become: yes
+  become: true
   when: is_nginx_not_configured is succeeded
   tags: nginx_install
 
 - name: Install nginx site for specified site
-  template:
+  ansible.builtin.template:
     src: templates/nginx-https.j2
     dest: /etc/nginx/sites-enabled/thuv
-  become: yes
+  become: true
   register: update_nginx_config
   tags: nginx_install
 
 - name: Reload nginx to activate specified site
-  service:
+  ansible.builtin.service:
     name: nginx
     state: restarted
-  become: yes
+  become: true
   when: update_nginx_config.changed
   tags: nginx_install
 
 - name: Run letsencrypt renew every month
-  cron:
+  ansible.builtin.cron:
     name: Letsencrypt renew
     special_time: monthly
     job: letsencrypt renew && service nginx restart
-  become: yes
+  become: true
   tags:
     - nginx_install
     - letsencrypt
 
 - name: Create back releases directory
-  file:
+  ansible.builtin.file:
     path: /opt/thuv/releases/back/{{ back_version }}/
     state: directory
     owner: "{{ ansible_user }}"
     mode: u=rwx,g=rx,o=rx
-  become: yes
+  become: true
 
 - name: Create back contexts directory
-  file:
+  ansible.builtin.file:
     path: "{{ web_contexts_save }}"
     state: directory
-  become: yes
+  become: true
 
 - name: Fetch back
-  get_url:
+  ansible.builtin.get_url:
     url: "https://github.com/CentraleSupelec/mydocker/releases/download/back-{{ back_version }}/artifacts.zip"
     dest: /opt/thuv/releases/back/{{ back_version }}/build.zip
 
 - name: Extract back
-  unarchive:
+  ansible.builtin.unarchive:
     src: /opt/thuv/releases/back/{{ back_version }}/build.zip
     dest: /opt/thuv/releases/back/{{ back_version }}/
-    remote_src: yes
-  become: yes
+    remote_src: true
+  become: true
 
 - name: Create front releases directory
-  file:
+  ansible.builtin.file:
     path: /opt/thuv/releases/front/{{ front_version }}/
     state: directory
     owner: "{{ ansible_user }}"
     mode: u=rwx,g=rx,o=rx
-  become: yes
+  become: true
 
 - name: Fetch front
-  get_url:
+  ansible.builtin.get_url:
     url: "https://github.com/CentraleSupelec/mydocker/releases/download/front-{{ front_version }}/artifacts.zip"
     dest: /opt/thuv/releases/front/{{ front_version }}/build.zip
 
 - name: Extract front
-  unarchive:
+  ansible.builtin.unarchive:
     src: /opt/thuv/releases/front/{{ front_version }}/build.zip
     dest: /opt/thuv/releases/front/{{ front_version }}/
-    remote_src: yes
-  become: yes
+    remote_src: true
+  become: true
 
 - name: Add front config
-  template:
+  ansible.builtin.template:
     src: front-config.js.j2
     dest: /opt/thuv/releases/front/{{ front_version }}/dist/NewMyDockerFront/assets/config.js
-  become: yes
+  become: true
 
 - name: Bump front config timestamp
   ansible.builtin.replace:
     regexp: "CONFIG_TIMESTAMP"
     replace: "{{ ansible_date_time.epoch }}"
     path: /opt/thuv/releases/front/{{ front_version }}/dist/NewMyDockerFront/index.html
-  become: yes
+  become: true
 
 - name: Deploy frontend
-  file:
+  ansible.builtin.file:
     src: /opt/thuv/releases/front/{{ front_version }}/dist/NewMyDockerFront/
     dest: "{{ web_front_location }}"
     owner: www-data
     group: www-data
     state: link
-  become: yes
+  become: true
 
 - name: Add backend systemd service
-  template:
+  ansible.builtin.template:
     src: thuv.service.j2
     dest: /lib/systemd/system/thuv.service
-  become: yes
+  become: true
   register: systemd_unit
 
-- name: force systemd to reread configs
-  systemd:
-    daemon_reload: yes
-  become: yes
+- name: Force systemd to reread configs
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
   when: systemd_unit.changed
 
 - name: Create thuv back directory
-  file:
+  ansible.builtin.file:
     path: "{{ web_back_location }}"
     state: directory
-  become: yes
+  become: true
 
 - name: Create thuv back config directory
-  file:
+  ansible.builtin.file:
     path: "{{ web_back_config_location }}"
     state: directory
-  become: yes
+  become: true
 
 - name: Add backend config file
-  template:
+  ansible.builtin.template:
     src: application.properties.j2
     dest: "{{ web_back_config_location }}/application.properties"
-  become: yes
+  become: true
 
 - name: Add private key
-  template:
+  ansible.builtin.template:
     src: variable.j2
     dest: "{{ web_back_config_location }}/private-key.pem"
     mode: 0600
   vars:
     variable: "{{ web_back_private_key }}"
-  become: yes
+  become: true
 
 - name: Add public key
-  template:
+  ansible.builtin.template:
     src: variable.j2
     dest: "{{ web_back_config_location }}/public-key.pem"
     mode: 0600
   vars:
     variable: "{{ web_back_public_key }}"
-  become: yes
+  become: true
 
-- name: ensure correct permissions
-  file:
+- name: Ensure correct permissions
+  ansible.builtin.file:
     path: /opt/thuv/releases/back/{{ back_version }}/target/thuv.jar
     owner: root
     group: root
     mode: "u=rx,g=rx,o=r"
-  become: yes
+  become: true
 
 - name: Deploy backend
-  file:
+  ansible.builtin.file:
     src: /opt/thuv/releases/back/{{ back_version }}/target/thuv.jar
     dest: "{{ web_back_location }}thuv.jar"
     state: link
     mode: u=rx,g=rx,o=rx
-  become: yes
+  become: true
 
-- name: restart service Thuv
-  systemd:
+- name: Restart service Thuv
+  ansible.builtin.systemd:
     state: restarted
     name: thuv
-  become: yes
+  become: true
 ...

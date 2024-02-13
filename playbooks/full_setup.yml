@@ -1,7 +1,7 @@
 ---
 - name: Install common tools
   hosts: all
-  become: yes
+  become: true
   roles:
     - centralesupelec.mydocker.common
     - role: Datadog.datadog
@@ -12,7 +12,7 @@
   become: true
   roles:
     - role: "nickjj.docker"
-      tags: [ "docker" ]
+      tags: ["docker"]
 
 - name: Create and configure docker swarm
   hosts: docker_swarm_manager:docker_swarm_worker
@@ -21,13 +21,13 @@
     - role: centralesupelec.mydocker.docker_swarm
       vars:
         docker_swarm_volume_backend: "{{ enable_ceph | ternary('rbd', 'fs') }}"
-  become: yes
+  become: true
 
 - name: Tweak monitoring
   hosts: all
   roles:
     - centralesupelec.mydocker.monitoring
-  become: yes
+  become: true
 
 - name: Install docker api
   hosts: docker_swarm_manager

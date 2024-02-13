@@ -1,50 +1,77 @@
-- name: check if centralesupelec/mydockervolume plugin already installed
-  command: docker plugin list
+- name: Check if centralesupelec/mydockervolume plugin already installed
+  ansible.builtin.command: docker plugin list
   register: plugin_list
   changed_when: false
 
-- name: install docker centralesupelec/mydockervolume plugin
-  command: "docker plugin install {{ docker_swarm_volume_plugin }} --alias=centralesupelec/mydockervolume LOG_LEVEL=warning DRIVER_MODE=RBD RBD_CONF_POOL=mydocker-{{ env }} RBD_CONF_CLUSTER=ceph RBD_CONF_KEYRING_USER=client.{{ ceph_user }} --grant-all-permissions"
+- name: Install docker centralesupelec/mydockervolume plugin
+  ansible.builtin.command: >-
+    docker plugin install {{ docker_swarm_volume_plugin }}
+    --alias=centralesupelec/mydockervolume
+    LOG_LEVEL=warning DRIVER_MODE=RBD
+    RBD_CONF_POOL=mydocker-{{ env }} RBD_CONF_CLUSTER=ceph RBD_CONF_KEYRING_USER=client.{{ ceph_user }}
+    --grant-all-permissions
   when: '"centralesupelec/mydockervolume" not in plugin_list.stdout'
+  register: output
+  changed_when: '"Installed plugin" in output.stdout'
 
-- name: get docker centralesupelec/mydockervolume plugin env configuration
-  command: docker plugin inspect -f {{ '{{.Settings.Env}}' }} centralesupelec/mydockervolume
+- name: Get docker centralesupelec/mydockervolume plugin env configuration
+  ansible.builtin.command: docker plugin inspect -f {{ '{{.Settings.Env}}' }} centralesupelec/mydockervolume
   changed_when: false
   register: rbd_env_list
 
-- name: disable centralesupelec/mydockervolume plugin to update conf
-  command: docker plugin disable centralesupelec/mydockervolume -f
+- name: Disable centralesupelec/mydockervolume plugin to update conf
+  ansible.builtin.command: docker plugin disable centralesupelec/mydockervolume -f
   when: ceph_user not in rbd_env_list.stdout
+  register: output
+  changed_when: output.rc == 0
 
-- name: update RBD_CONF_KEYRING_USER of centralesupelec/mydockervolume plugin
-  command: "docker plugin set centralesupelec/mydockervolume RBD_CONF_KEYRING_USER=client.{{ ceph_user }}"
+- name: Update RBD_CONF_KEYRING_USER of centralesupelec/mydockervolume plugin
+  ansible.builtin.command: docker plugin set centralesupelec/mydockervolume RBD_CONF_KEYRING_USER=client.{{ ceph_user }}
   when: ceph_user not in rbd_env_list.stdout
+  register: output
+  changed_when: output.rc == 0
 
-- name: update RBD_CONF_POOL of centralesupelec/mydockervolume plugin
-  command: "docker plugin set centralesupelec/mydockervolume RBD_CONF_POOL=mydocker-{{ env }}"
+- name: Update RBD_CONF_POOL of centralesupelec/mydockervolume plugin
+  ansible.builtin.command: "docker plugin set centralesupelec/mydockervolume RBD_CONF_POOL=mydocker-{{ env }}"
   when: ceph_user not in rbd_env_list.stdout
+  register: output
+  changed_when: output.rc == 0
 
-- name: enable centralesupelec/mydockervolume plugin
-  command: docker plugin enable centralesupelec/mydockervolume
+- name: Enable centralesupelec/mydockervolume plugin
+  ansible.builtin.command: docker plugin enable centralesupelec/mydockervolume
   when: ceph_user not in rbd_env_list.stdout
+  register: output
+  changed_when: output.rc == 0
 
-- name: install docker cephfs plugin
-  command: "docker plugin install brindster/docker-plugin-cephfs --alias cephfs CLUSTER_NAME=ceph CLIENT_NAME={{ ceph_user }} SERVERS={{ ceph_ips|join(',') }} --grant-all-permissions"
+- name: Install docker cephfs plugin
+  ansible.builtin.command: >-
+    docker plugin install brindster/docker-plugin-cephfs
+    --alias cephfs
+    CLUSTER_NAME=ceph CLIENT_NAME={{ ceph_user }} SERVERS={{ ceph_ips | join(',') }}
+    --grant-all-permissions
+  register: output
   when: '"cephfs" not in plugin_list.stdout'
+  changed_when: '"Installed plugin" in output.stdout'
 
-- name: get docker cephfs plugin env configuration
-  command: docker plugin inspect -f {{ '{{.Settings.Env}}' }} cephfs
+- name: Get docker cephfs plugin env configuration
+  ansible.builtin.command: docker plugin inspect -f {{ '{{.Settings.Env}}' }} cephfs
   changed_when: false
   register: cephfs_env_list
 
-- name: disable cepfs plugin to update conf
-  command: docker plugin disable cephfs -f
+- name: Disable cepfs plugin to update conf
+  ansible.builtin.command: docker plugin disable cephfs -f
   when: ceph_user not in cephfs_env_list.stdout
+  register: output
+  changed_when: output.rc == 0
 
-- name: update CLIENT_NAME of cephfs plugin
-  command: "docker plugin set cephfs CLIENT_NAME={{ ceph_user }}"
+- name: Update CLIENT_NAME of cephfs plugin
+  ansible.builtin.command: "docker plugin set cephfs CLIENT_NAME={{ ceph_user }}"
   when: ceph_user not in cephfs_env_list.stdout
+  register: output
+  changed_when: output.rc == 0
 
-- name: enable cepfs plugin
-  command: docker plugin enable cephfs
+- name: Enable cepfs plugin
+  ansible.builtin.command: docker plugin enable cephfs
   when: ceph_user not in cephfs_env_list.stdout
+  register: output
+  changed_when: output.rc == 0

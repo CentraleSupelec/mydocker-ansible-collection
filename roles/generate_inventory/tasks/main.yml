@@ -1,6 +1,6 @@
 ---
-- name: template inventory
-  template:
+- name: Template inventory
+  ansible.builtin.template:
     src: hosts.j2
     dest: inventories/{{ env }}/hosts
   delegate_to: localhost

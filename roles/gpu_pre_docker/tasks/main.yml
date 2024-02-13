@@ -1,16 +1,16 @@
 ---
 - name: Add nvidia cuda keyring
-  apt:
-    deb: https://developer.download.nvidia.com/compute/cuda/repos/{{ ansible_distribution | lower }}{{ ansible_distribution_version|regex_replace('\.', '') }}/{{ ansible_architecture }}/{{ gpu_pre_docker_cuda_keyring_package }}
+  ansible.builtin.apt:
+    deb: https://developer.download.nvidia.com/compute/cuda/repos/{{ ansible_distribution | lower }}{{ ansible_distribution_version | regex_replace('\.', '') }}/{{ ansible_architecture }}/{{ gpu_pre_docker_cuda_keyring_package }}
   register: nvidia_cuda_apt
 
 - name: Update apt
-  apt:
-    update_cache: "yes"
+  ansible.builtin.apt:
+    update_cache: true
   when: nvidia_cuda_apt.changed
 
 - name: Install cuda-drivers
-  apt:
+  ansible.builtin.apt:
     name:
       - "{{ gpu_pre_docker_driver }}"
     state: present
@@ -27,29 +27,29 @@
   register: gpu_nvidia_workaround
 
 - name: Reboot to load the drivers
-  reboot:
+  ansible.builtin.reboot:
     reboot_timeout: 300
   when: gpu_install_cuda.changed or gpu_nvidia_workaround.changed
 
 # Installing some Nvidia and Cuda packages install a package with the major version number in its name
 # So we retrieve them to pin the right package
 - name: Register nvidia/cuda packages
-  shell: "dpkg --get-selections | grep -E 'nvidia|cuda' | cut -f1"
+  ansible.builtin.shell: "set -o pipefail && dpkg --get-selections | grep -E 'nvidia|cuda' | cut -f1"
   register: nvidia_cuda_installed_packages
   changed_when: false
 
 - name: Hold nvidia and cuda packages
-  dpkg_selections:
+  ansible.builtin.dpkg_selections:
     name: "{{ item }}"
     selection: hold
   loop: "{{ nvidia_cuda_installed_packages.stdout_lines }}"
 
 - name: Register GPU UUID
-  shell: "nvidia-smi -L|grep -Po 'UUID: \\K(.*)(?=\\))'"
+  ansible.builtin.shell: "nvidia-smi -L|grep -Po 'UUID: \\K(.*)(?=\\))'"
   register: gpu_uuid
   changed_when: false
   ignore_errors: "{{ gpu_pre_docker_accept_empty_gpu }}"
 
 - name: Register docker daemon config
-  set_fact:
+  ansible.builtin.set_fact:
     gpu_pre_docker__daemon_json: "{{ lookup('template', 'templates/daemon.json.j2') }}"

@@ -1,5 +1,5 @@
 - name: Create seccomp folder
-  file:
+  ansible.builtin.file:
     path: "{{ docker_swarm_seccomp_folder }}"
     state: directory
     group: docker
@@ -7,7 +7,7 @@
   when: docker_swarm_seccomp_override
 
 - name: Copy seccomp configuration
-  copy:
+  ansible.builtin.copy:
     src: seccomp.json
     dest: "{{ docker_swarm_seccomp_folder }}/seccomp.json"
     group: docker
@@ -15,8 +15,8 @@
   when: docker_swarm_seccomp_override
 
 - name: Enable seccomp profile
-  replace:
-    backup: yes
+  ansible.builtin.replace:
+    backup: true
     dest: /lib/systemd/system/docker.service
     regexp: '^(ExecStart=\/usr\/bin\/dockerd -H fd:\/\/(?!.*--seccomp-profile {{ docker_swarm_seccomp_folder }}\/seccomp.json\b).*)$'
     replace: '\1 --seccomp-profile {{ docker_swarm_seccomp_folder }}/seccomp.json'
@@ -24,8 +24,8 @@
   when: docker_swarm_seccomp_override
 
 - name: Restart docker service on change
-  systemd:
+  ansible.builtin.systemd:
     state: restarted
-    daemon_reload: yes
+    daemon_reload: true
     name: docker
   when: enable_seccomp_profile.changed

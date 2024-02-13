@@ -3,4 +3,4 @@
 # specific version (eg: cuda-drivers-470) in the hosts inventory
 gpu_pre_docker_driver: cuda-drivers
 gpu_pre_docker_cuda_keyring_package: cuda-keyring_1.0-1_all.deb
-gpu_pre_docker_accept_empty_gpu: no
+gpu_pre_docker_accept_empty_gpu: false

@@ -1,0 +1,16 @@
+- name: Create and configure docker swarm
+  hosts: docker_swarm_worker
+  vars_prompt:
+    - name: image
+      prompt: Please provide image name
+      private: false
+  tasks:
+    - name: Log into private registry
+      community.docker.docker_login:
+        registry: "{{ registry_address }}"
+        username: "{{ registry_username }}"
+        password: "{{ registry_password }}"
+        reauthorize: true
+    - name: Pull docker image
+      community.docker.docker_image_pull:
+        name: "{{ image }}"

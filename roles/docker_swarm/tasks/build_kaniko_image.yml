@@ -1,14 +1,14 @@
 - name: Create app folder
-  file:
+  ansible.builtin.file:
     name: /opt/kaniko-executor
     state: directory
 
 - name: Create Dockerfile
-  template:
+  ansible.builtin.template:
     src: Dockerfile.j2
     dest: /opt/kaniko-executor/Dockerfile
 
 - name: Create kaniko executor docker image
-  shell: "docker build -t kaniko-executor-my-docker ."
-  args:
-    chdir: /opt/kaniko-executor
+  community.docker.docker_image_build:
+    name: kaniko-executor-my-docker
+    path: /opt/kaniko-executor

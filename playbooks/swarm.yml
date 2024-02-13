@@ -1,9 +1,9 @@
 - name: Update apt
   hosts: docker_swarm_manager:docker_swarm_worker
-  become: yes
+  become: true
   tasks:
     - name: Wait for lock to be released
-      shell: while lsof /var/{{ item }}; do sleep 10; done;
+      ansible.builtin.shell: while lsof /var/{{ item }}; do sleep 10; done;
       changed_when: false
       loop:
         - lib/dpkg/lock-frontend
@@ -11,16 +11,16 @@
         - cache/apt/archives/lock
 
     - name: Update apt
-      apt:
-        update_cache: "yes"
+      ansible.builtin.apt:
+        update_cache: true
         cache_valid_time: 3600
 
 - name: Update apt
   hosts: docker_swarm_manager:docker_swarm_worker
-  become: yes
+  become: true
   tasks:
     - name: Wait for /var/lib/dpkg/lock-frontend to be released
-      shell: while lsof /var/lib/dpkg/lock-frontend ; do sleep 10; done;
+      ansible.builtin.shell: while lsof /var/lib/dpkg/lock-frontend ; do sleep 10; done;
       changed_when: false
 
 - name: Install NVIDIA driver
@@ -36,11 +36,11 @@
   pre_tasks:
     - name: Register docker config for GPU
       when: gpu_type is defined
-      set_fact:
+      ansible.builtin.set_fact:
         docker__daemon_json: "{{ gpu_pre_docker__daemon_json }}"
   roles:
     - role: "nickjj.docker"
-      tags: [ "docker" ]
+      tags: ["docker"]
     # Install NVIDIA docker runtime after Docker to avoid installing docker-ce as a default APT dependency for the driver
     - role: centralesupelec.mydocker.gpu_post_docker
       when: gpu_type is defined
@@ -48,14 +48,14 @@
 - name: Install ssh keys
   hosts: docker_swarm_worker:docker_swarm_manager
   tasks:
-    - when: common_ssh_authorized_keys is defined
-      name: Provision ssh keys
-      authorized_key:
+    - name: Provision ssh keys
+      when: common_ssh_authorized_keys is defined
+      ansible.posix.authorized_key:
         user: "{{ item.key }}"
         state: present
         key: "{{item.value | join('\n') if item.value is defined and item.value is iterable else ''}}"
-        exclusive: "yes"
-      loop: "{{ (common_ssh_authorized_keys|default({}))|dict2items }}"
+        exclusive: true
+      loop: "{{ (common_ssh_authorized_keys | default({})) | dict2items }}"
       tags:
         - ssh
 
@@ -66,10 +66,10 @@
     - role: centralesupelec.mydocker.docker_swarm
       vars:
         docker_swarm_volume_backend: "{{ enable_ceph | ternary('rbd', 'fs') }}"
-  become: yes
+  become: true
 
 - name: Create and configure swap on workers
   hosts: docker_swarm_worker
   roles:
     - geerlingguy.swap
-  become: yes
+  become: true

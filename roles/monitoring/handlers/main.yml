@@ -1,5 +1,5 @@
 ---
 - name: Restart Datadog agent
-  service:
+  ansible.builtin.service:
     name: datadog-agent
     state: restarted

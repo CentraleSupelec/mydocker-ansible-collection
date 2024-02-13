@@ -1,11 +1,11 @@
 - name: Install Backy2
   block:
     - name: Apt install from github .deb package
-      apt:
+      ansible.builtin.apt:
         deb: "{{ backy2_deb }}"
 
 - name: Install python postgresql and backy2 dependency
-  apt:
+  ansible.builtin.apt:
     name:
       - postgresql
       - libpq-dev
@@ -14,7 +14,7 @@
       - python3-rados
 
 - name: Install python packages
-  pip:
+  ansible.builtin.pip:
     executable: pip3
     extra_args: "--break-system-packages"
     name:
@@ -25,21 +25,21 @@
 
 # Database configuration
 - name: Create a new database for Backy2
-  postgresql_db:
+  community.postgresql.postgresql_db:
     name: "{{ backy2_db_database }}"
     encoding: UTF-8
-  become: yes
+  become: true
   vars:
     ansible_ssh_pipelining: true
   become_user: postgres
 
 - name: Create postgresql user and grant access to database and tables
-  postgresql_user:
+  community.postgresql.postgresql_user:
     db: "{{ backy2_db_database }}"
     name: "{{ backy2_db_username }}"
     password: "{{ backy2_db_password }}"
     priv: "ALL"
-  become: yes
+  become: true
   vars:
     ansible_ssh_pipelining: true
   become_user: postgres
@@ -165,14 +165,14 @@
 
 # Cronjob
 - name: Create log dir
-  file:
+  ansible.builtin.file:
     path: /var/log/backy2
     state: directory
     owner: ubuntu
     group: ubuntu
 
 - name: "Create logrotate config file"
-  file:
+  ansible.builtin.file:
     path: "/etc/logrotate.d/backy2"
     state: touch
     mode: "0644"
@@ -180,7 +180,7 @@
     access_time: preserve
 
 - name: "Add config block to logrotate config file"
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "/etc/logrotate.d/backy2"
     block: |
       /var/log/backy2/backy2.log {
@@ -193,7 +193,7 @@
       }
 
 - name: Install cronjob
-  cron:
+  ansible.builtin.cron:
     name: Backy2 daily Ceph backup
     minute: "0"
     hour: "1"

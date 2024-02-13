@@ -5,26 +5,26 @@
     state: present
 
 - name: Add nvidia repo
-  get_url:
+  ansible.builtin.get_url:
     url: https://nvidia.github.io/nvidia-container-runtime/{{ ansible_distribution | lower }}{{ ansible_distribution_version }}/nvidia-container-runtime.list
     dest: /etc/apt/sources.list.d/nvidia-container-runtime.list
     mode: 0644
   register: nvidia_runtime_apt
 
 - name: Update apt
-  apt:
-    update_cache: "yes"
+  ansible.builtin.apt:
+    update_cache: true
   when: nvidia_runtime_apt.changed
 
 - name: Install nvidia-docker2
-  apt:
+  ansible.builtin.apt:
     name:
       - nvidia-docker2
     state: present
   notify: "Restart Docker"
 
 - name: Uncomment swarm-resource
-  replace:
+  ansible.builtin.replace:
     path: /etc/nvidia-container-runtime/config.toml
     regexp: '^\s*#+swarm-resource.*$'
     replace: 'swarm-resource = "DOCKER_RESOURCE_GPU"'
@@ -33,7 +33,7 @@
   notify: "Restart Docker"
 
 - name: Comment swarm-resource
-  replace:
+  ansible.builtin.replace:
     path: /etc/nvidia-container-runtime/config.toml
     regexp: '^\s*swarm-resource.*$'
     replace: '#swarm-resource = "DOCKER_RESOURCE_GPU"'

@@ -1,0 +1,8 @@
+---
+- name: Install common tools
+  hosts: all
+  roles: 
+   - common
+   -  { role: Datadog.datadog }
+   - monitoring
+  become: yes
