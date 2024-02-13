@@ -15,8 +15,7 @@
 
 - name: Install python packages
   ansible.builtin.pip:
-    executable: pip3
-    extra_args: "--break-system-packages"
+    extra_args: "{{ (ansible_python.version.minor > 10) | ternary('--break-system-packages', '') }}"
     name:
       - pycryptodome
       - zstandard
