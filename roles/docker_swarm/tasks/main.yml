@@ -46,6 +46,12 @@
   tags:
     - docker_swarm_init
 
+- name: Include subnet fixing tasks
+  import_tasks: fix_subnet.yml
+  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  tags:
+    - docker_swarm_init
+
 - name: Include seccomp tasks
   import_tasks: seccomp.yml
   tags:
