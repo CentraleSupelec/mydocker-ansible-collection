@@ -37,6 +37,8 @@
   ansible.builtin.shell: "set -o pipefail && dpkg --get-selections | grep -E 'nvidia|cuda' | cut -f1"
   register: nvidia_cuda_installed_packages
   changed_when: false
+  args:
+    executable: /usr/bin/bash
 
 - name: Hold nvidia and cuda packages
   ansible.builtin.dpkg_selections:
