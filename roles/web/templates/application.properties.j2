@@ -56,6 +56,6 @@ spring.mustache.prefix=classpath:/templates/
 spring.mustache.suffix=.html
 
 deployment_delay_in_milliseconds={{ web_deployment_delay_in_milliseconds }}
-deployment_enabled={{ deplyment_enabled }}
+deployment_enabled={{ deployment_enabled | to_json }}
 
 {{ web_extra_application_properties }}

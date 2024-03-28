@@ -5,5 +5,5 @@ window['MY_DOCKER_APP_CONSTANTS'] = {
         "login_url": "{{ cas_base_url }}/login",
         "logout_url": "{{ cas_base_url }}/logout",
     },
-    "deployment_enabled": {{ deplyment_enabled }}
+    "deployment_enabled": {{ deployment_enabled | to_json }}
 };
