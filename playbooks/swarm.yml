@@ -9,6 +9,8 @@
         - lib/dpkg/lock-frontend
         - lib/apt/lists/lock
         - cache/apt/archives/lock
+      # Unattended upgrades can lock the dpkg lock file for long periods of time, so we timeout to skip the host and continue with the rest of the playbook
+      timeout: 60
 
     - name: Update apt
       ansible.builtin.apt:
