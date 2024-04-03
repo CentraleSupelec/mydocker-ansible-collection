@@ -6,6 +6,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 
 ## Unreleased
 
+## 0.2.0
 ### Fixed
 - Fix for new output of openstack.cloud.server_info module
 - Fix wrong handler name
