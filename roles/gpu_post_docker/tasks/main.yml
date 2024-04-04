@@ -40,8 +40,3 @@
   register: nvidia_runtime_comment
   when: gpu_type is not defined or gpu_type == 'shared'
   notify: "Restart Docker"
-
-# https://github.com/NVIDIA/nvidia-docker/issues/1730
-- name: Manually patch nvidia devices
-  ansible.builtin.command: /usr/bin/nvidia-ctk system create-dev-char-symlinks --create-all
-  notify: "Restart Docker"

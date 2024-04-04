@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+## 0.4.0
+### Fixed
+- Remove manual nvidia patch on `post_docker` as it is run on boot with udev rule and trigger a docker restart.
+
 ## 0.3.0
 ### Fixed
 - Do not output server without ipv4 in generated inventory
