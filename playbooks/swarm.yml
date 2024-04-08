@@ -24,6 +24,7 @@
     - name: Wait for /var/lib/dpkg/lock-frontend to be released
       ansible.builtin.shell: while lsof /var/lib/dpkg/lock-frontend ; do sleep 10; done;
       changed_when: false
+      timeout: 60
 
 - name: Install NVIDIA driver
   hosts: docker_swarm_worker
