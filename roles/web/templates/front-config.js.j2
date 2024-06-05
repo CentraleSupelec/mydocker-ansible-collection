@@ -6,5 +6,5 @@ window['MY_DOCKER_APP_CONSTANTS'] = {
         "logout_url": "{{ cas_base_url }}/logout",
     },
     "deployment_enabled": {{ deployment_enabled | to_json }},
-    "default_storage_backend": {{ default_storage_backend }}
+    "default_storage_backend": {{ default_storage_backend | to_json }}
 };
