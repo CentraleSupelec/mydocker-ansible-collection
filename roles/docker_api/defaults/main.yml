@@ -38,3 +38,4 @@ reverse_proxy_url: "{{ undef(hint='reverse_proxy_url must be defined') }}"
 caddy_overlay_network: caddy-overlay
 caddy_cert_file_target_path: /etc/ssl/caddy_reverse_proxy/cert.pem
 caddy_key_file_target_path: /etc/ssl/caddy_reverse_proxy/key.pem
+student_volume_size: 100 # in MB. Works only with RBD volumes.
