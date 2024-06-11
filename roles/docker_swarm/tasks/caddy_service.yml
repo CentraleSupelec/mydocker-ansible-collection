@@ -1,0 +1,30 @@
+---
+- name: Create caddy service
+  docker_swarm_service:
+    name: caddy
+    image: lucaslorentz/caddy-docker-proxy:ci-alpine
+    replicas: 1
+    publish:
+      - published_port: 80
+        target_port: 80
+        mode: ingress
+      - published_port: 443
+        target_port: 443
+        mode: ingress
+    networks:
+      - "{{ caddy_overlay_network }}"
+    mounts:
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        type: bind
+      - source: "{{ caddy_cert_file_source_path }}"
+        target: "{{ caddy_cert_file_target_path }}"
+        type: bind
+        readonly: yes
+      - source: "{{ caddy_key_file_source_path }}"
+        target: "{{ caddy_key_file_target_path }}"
+        type: bind
+        readonly: yes
+    placement:
+      constraints:
+        - node.role == manager

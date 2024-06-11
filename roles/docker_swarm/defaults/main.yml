@@ -15,3 +15,8 @@ ceph_pool: mydocker-{{ env }}
 registry_address: ~
 registry_username: ~
 registry_password: ~
+caddy_overlay_network: caddy-overlay
+caddy_cert_file_source_path: "{{ undef(hint='caddy_cert_file_source_path must be defined') }}"
+caddy_key_file_source_path: "{{ undef(hint='caddy_key_file_source_path must be defined') }}"
+caddy_cert_file_target_path: /etc/ssl/caddy_reverse_proxy/cert.pem
+caddy_key_file_target_path: /etc/ssl/caddy_reverse_proxy/key.pem

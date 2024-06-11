@@ -1,0 +1,9 @@
+---
+- name: Create caddy overlay network if it doesn't exit
+  docker_network:
+    name: "{{ caddy_overlay_network }}"
+    attachable: yes
+    driver: overlay
+    ipam_config:
+      - gateway: "192.168.0.1"
+        subnet: "192.168.0.0/18"

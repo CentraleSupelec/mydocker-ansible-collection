@@ -22,6 +22,21 @@
   community.docker.docker_host_info:
   register: docker_info
 
+- name: Set worker roles
+  when: inventory_hostname != groups['docker_swarm_manager'][0]
+  community.docker.docker_node:
+    hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
+    role: "{{ 'manager' if caddy is defined and caddy | bool else 'worker' }}"
+  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+
+- name: Create caddy overlay network
+  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  ansible.builtin.include_tasks: caddy_overlay_network.yml
+
+- name: Create caddy service
+  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  ansible.builtin.include_tasks: caddy_service.yml
+
 - name: Add storage label
   community.docker.docker_node:
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
