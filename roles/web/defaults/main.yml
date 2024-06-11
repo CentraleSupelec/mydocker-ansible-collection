@@ -36,3 +36,4 @@ web_deployment_delay_in_milliseconds: 300000
 deployment_enabled: true
 terraform_state_url: "https://path.com/to/state.tf"
 go_address: "{{ (inventory_hostname == groups['docker_swarm_manager'][0]) | ternary('127.0.0.1',  hostvars[groups['docker_swarm_manager'][0]]['ansible_host']) }}"
+default_storage_backend: RBD # One of RBD, NFS, LOCAL
