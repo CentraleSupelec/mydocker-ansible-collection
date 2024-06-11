@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## 0.6.0
 ### Changed
 - Add variables for SSL wildcard certificates and reverse proxy main URL
 - Add variable for default storage backend
