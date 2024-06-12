@@ -13,6 +13,7 @@
 - name: Install docker module
   ansible.builtin.pip:
     name: docker
+    version: ">=7.0.0, <8.0.0"
     extra_args: "{{ (ansible_python.version.minor > 10) | ternary('--break-system-packages', '') }}"
   tags:
     - install

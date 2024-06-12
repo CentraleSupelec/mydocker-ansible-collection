@@ -6,6 +6,10 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 
 ## Unreleased
 
+## 0.7.0
+### Changed
+- Upgrade Docker python SDK
+
 ## 0.6.0
 ### Changed
 - Add variables for SSL wildcard certificates and reverse proxy main URL
