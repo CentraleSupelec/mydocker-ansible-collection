@@ -1,7 +1,18 @@
 - name: Check if centralesupelec/mydockervolume plugin already installed
-  ansible.builtin.command: docker plugin list
-  register: plugin_list
+  ansible.builtin.command: "docker plugin inspect centralesupelec/mydockervolume -f '{{ '{{' }}.PluginReference{{ '}}' }}'"
+  register: plugin_inspect
   changed_when: false
+  ignore_errors: true
+
+- name: Define if should upgrade plugin
+  changed_when: false
+  set_fact:
+    docker_swarm_volume_upgrade_internal: true
+  when: (plugin_inspect.rc == 0) and (docker_swarm_volume_plugin != (plugin_inspect.stdout|replace("docker.io/", ""))) and docker_swarm_volume_upgrade
+
+- name: Remove old plugin
+  ansible.builtin.command: docker plugin rm -f centralesupelec/mydockervolume
+  when: docker_swarm_volume_upgrade_internal
 
 - name: Install docker centralesupelec/mydockervolume plugin
   ansible.builtin.command: >-
@@ -10,7 +21,7 @@
     LOG_LEVEL=warning DRIVER_MODE=RBD
     RBD_CONF_POOL=mydocker-{{ env }} RBD_CONF_CLUSTER=ceph RBD_CONF_KEYRING_USER=client.{{ ceph_user }}
     --grant-all-permissions
-  when: '"centralesupelec/mydockervolume" not in plugin_list.stdout'
+  when: '("not found" in plugin_inspect.stderr) or docker_swarm_volume_upgrade_internal'
   register: output
   changed_when: '"Installed plugin" in output.stdout'
 
@@ -42,6 +53,11 @@
   when: ceph_user not in rbd_env_list.stdout
   register: output
   changed_when: output.rc == 0
+
+- name: List installed plugins
+  ansible.builtin.command: docker plugin list
+  register: plugin_list
+  changed_when: false
 
 - name: Install docker cephfs plugin
   ansible.builtin.command: >-
