@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+## 0.8.0
+### Changed
+- Add variable `docker_swarm_volume_upgrade` to allow plugin upgrade
+### Fixed
+- Fix caddy var in template
 
 ## 0.7.0
 ### Changed
