@@ -4,6 +4,13 @@
     name: caddy
     image: lucaslorentz/caddy-docker-proxy:ci-alpine
     replicas: 1
+    labels:
+      caddy_0: "(default_response)",
+      caddy_0.respond: "410",
+      caddy_1: "http://",
+      caddy_1.import: "default_response",
+      caddy_2: "https://",
+      caddy_2.import: "default_response"
     publish:
       - published_port: 80
         target_port: 80
