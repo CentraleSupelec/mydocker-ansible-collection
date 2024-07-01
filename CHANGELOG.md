@@ -8,6 +8,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ## 0.9.0
 ### Changed
 - Add labels to caddy to fallback to status 410
+- Add new `app.testConnectionScheduler.*` back-end settings
 
 ## 0.8.0
 ### Changed

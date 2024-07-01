@@ -4,6 +4,9 @@ app.jwtExpirationInMs = {{ web_jwt_expiration }}
 app.cas.rscUrl={{ cas_base_url }}/p3/serviceValidate
 app.cas.service=https://{{ public_web_url }}/loginAccept
 
+app.testConnectionScheduler.errorCodes={{ test_connection_error_codes }}
+app.testConnectionScheduler.disableSslValidation={{ test_connection_disable_ssl_validation | to_json }}
+
 ## Spring DATASOURCE (DataSourceAutoConfiguration & DataSourceProperties)
 spring.datasource.url=jdbc:postgresql://localhost:{{ web_pg_port }}/{{web_pg_database}}
 spring.datasource.username= {{ web_pg_username }}
