@@ -22,5 +22,6 @@ caddy_key_file_source_path: "{{ undef(hint='caddy_key_file_source_path must be d
 caddyfile_storage_path: /etc/caddy/Caddyfile
 caddy_cert_file_target_path: /etc/ssl/caddy_reverse_proxy/cert.pem
 caddy_key_file_target_path: /etc/ssl/caddy_reverse_proxy/key.pem
+proxy_aristote_dispatcher: false
 aristote_dispatcher_url: "{{ undef(hint='aristote_dispatcher_url must be defined') }}"
 aristote_dispatcher_token: "{{ undef(hint='aristote_dispatcher_token must be defined') }}"
