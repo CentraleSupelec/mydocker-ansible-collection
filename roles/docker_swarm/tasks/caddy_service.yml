@@ -1,4 +1,20 @@
 ---
+- name: Ensure caddy parent directory exists
+  ansible.builtin.file:
+    path: "{{ caddyfile_storage_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create Caddyfile
+  ansible.builtin.template:
+    src: "templates/Caddyfile.j2"
+    dest: "{{ caddyfile_storage_path }}"
+    mode: 0644
+    owner: root
+    group: root
+
 - name: Create caddy service
   docker_swarm_service:
     name: caddy
@@ -20,6 +36,8 @@
         mode: ingress
     networks:
       - "{{ caddy_overlay_network }}"
+    env:
+      - CADDY_DOCKER_CADDYFILE_PATH=/etc/caddy/Caddyfile
     mounts:
       - source: /var/run/docker.sock
         target: /var/run/docker.sock
@@ -30,6 +48,10 @@
         readonly: yes
       - source: "{{ caddy_key_file_source_path }}"
         target: "{{ caddy_key_file_target_path }}"
+        type: bind
+        readonly: yes
+      - source: "{{ caddyfile_storage_path }}"
+        target: "/etc/caddy/Caddyfile"
         type: bind
         readonly: yes
     placement:
