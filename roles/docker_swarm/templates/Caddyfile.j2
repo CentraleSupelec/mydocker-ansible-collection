@@ -1,0 +1,7 @@
+http://caddy {
+        tls internal
+        reverse_proxy {{ aristote_dispatcher_url}} {
+                header_up Host {upstream_hostport}
+                header_up Authorization "Bearer {{ aristote_dispatcher_token }}"
+        }
+}
