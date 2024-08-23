@@ -292,6 +292,24 @@
     state: link
   become: true
 
+- name: Install custom logo
+  ansible.builtin.copy:
+    src: "{{ logo_filename }}"
+    dest: /opt/thuv/releases/front/{{ front_version }}/dist/NewMyDockerFront/assets/Logo_Ecole.png
+    owner: www-data
+    group: www-data
+  when: logo_filename != None
+  become: true
+
+- name: Install custom favicon
+  ansible.builtin.copy:
+    src: "{{ favicon_filename }}"
+    dest: /opt/thuv/releases/front/{{ front_version }}/dist/NewMyDockerFront/favicon.ico
+    owner: www-data
+    group: www-data
+  when: favicon_filename != None
+  become: true
+
 - name: Add backend systemd service
   ansible.builtin.template:
     src: thuv.service.j2

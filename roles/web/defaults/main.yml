@@ -44,3 +44,5 @@ oidc_issuer: ~
 oidc_default_idp: ~
 oidc_scope: "openid profile email"
 auto_login: "CAS"
+logo_filename: ~
+favicon_filename: ~
