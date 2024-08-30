@@ -7,7 +7,7 @@ window['MY_DOCKER_APP_CONSTANTS'] = {
     },
     "deployment_enabled": {{ deployment_enabled | to_json }},
     "default_storage_backend": {{ default_storage_backend | to_json }},
-    "oidc_default_idp": "{{ oidc_default_idp }}",
+    "oidc_idps": {{ oidc_idps | to_json}},
     "oidc_client_id": "{{ oidc_audience }}",
     "oidc_authority": "{{ oidc_issuer }}",
     "oidc_scope": "{{ oidc_scope }}",

@@ -41,7 +41,10 @@ test_connection_error_codes: 410,503
 test_connection_disable_ssl_validation: false
 oidc_audience: ~
 oidc_issuer: ~
-oidc_default_idp: ~
+oidc_idps:
+  - title: "CONNEXION AVEC VOTRE ÉTABLISSEMENT"
+  # tooltip: "..."
+  # idp_hint: "..."
 oidc_scope: "openid profile email"
 auto_login: "CAS"
 logo_filename: ~
