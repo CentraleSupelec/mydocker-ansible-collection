@@ -9,6 +9,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ### Changed
 - Add config for OIDC (`oidc_audience` / `oidc_issuer` / `oidc_idps` / `oidc_scope` / `auto_login`)
 - Add config for custom logo and favicon. Put them in a `files/` directory next to your `inventory/` dir and set `logo_filename`/`favicon/filename` to `"{{ inventory_dir }}/../../files/myfile.png"`
+- Allow empty `cas_base_url` to disable CAS login
 
 ## 0.9.0
 ### Changed

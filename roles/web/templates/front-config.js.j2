@@ -2,8 +2,8 @@ window['MY_DOCKER_APP_CONSTANTS'] = {
     "back_url": "https://{{ public_web_url }}/api/",
     "front_url": "https://{{ public_web_url }}",
     "cas": {
-        "login_url": "{{ cas_base_url }}/login",
-        "logout_url": "{{ cas_base_url }}/logout",
+        "login_url": "{{ (cas_base_url != None)|ternary(cas_base_url ~ '/login',  '') }}",
+        "logout_url": "{{ (cas_base_url != None)|ternary(cas_base_url ~ '/logout',  '') }}"
     },
     "deployment_enabled": {{ deployment_enabled | to_json }},
     "default_storage_backend": {{ default_storage_backend | to_json }},
