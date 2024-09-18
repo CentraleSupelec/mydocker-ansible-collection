@@ -2,9 +2,14 @@ window['MY_DOCKER_APP_CONSTANTS'] = {
     "back_url": "https://{{ public_web_url }}/api/",
     "front_url": "https://{{ public_web_url }}",
     "cas": {
-        "login_url": "{{ cas_base_url }}/login",
-        "logout_url": "{{ cas_base_url }}/logout",
+        "login_url": "{{ (cas_base_url != None)|ternary(cas_base_url ~ '/login',  '') }}",
+        "logout_url": "{{ (cas_base_url != None)|ternary(cas_base_url ~ '/logout',  '') }}"
     },
     "deployment_enabled": {{ deployment_enabled | to_json }},
-    "default_storage_backend": {{ default_storage_backend | to_json }}
+    "default_storage_backend": {{ default_storage_backend | to_json }},
+    "oidc_idps": {{ oidc_idps | to_json}},
+    "oidc_client_id": "{{ oidc_audience }}",
+    "oidc_authority": "{{ oidc_issuer }}",
+    "oidc_scope": "{{ oidc_scope }}",
+    "auto_login": "{{ auto_login }}"
 };

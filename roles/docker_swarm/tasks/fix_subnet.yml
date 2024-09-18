@@ -7,6 +7,7 @@
 - name: List services
   community.docker.docker_swarm_info:
     services: true
+    verbose_output: true
   register: docker_swarm_services
 
 - name: Set variable docker_swarm_subnet_gateway
@@ -30,7 +31,7 @@
 
 - name: Disconnect services
   ansible.builtin.command: docker service update --publish-rm={{ item.1.TargetPort }} {{ item.0.ID }}
-  loop: "{{ docker_swarm_services.services | subelements('Ports') }}"
+  loop: "{{ docker_swarm_services.services | subelements('Endpoint.Ports', skip_missing=True) }}"
   when: should_fix_subnet
 
 - when: should_fix_subnet
@@ -51,4 +52,4 @@
   always:
     - name: Reconnect services
       ansible.builtin.command: docker service update --publish-add target={{ item.1.TargetPort }},{% if item.1.PublishedPort is defined %}published={{ item.1.PublishedPort }},{% endif %}protocol={{ item.1.Protocol }} {{ item.0.ID }}
-      loop: "{{ docker_swarm_services.services | subelements('Ports') }}"
+      loop: "{{ docker_swarm_services.services | subelements('Endpoint.Ports', skip_missing=True) }}"
