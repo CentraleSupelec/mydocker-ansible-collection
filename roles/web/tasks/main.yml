@@ -69,7 +69,7 @@
 
 - name: Install datadog javaagent
   ansible.builtin.get_url:
-    url: https://search.maven.org/classic/remote_content?g=com.datadoghq&a=dd-java-agent&v=LATEST
+    url: https://dtdg.co/latest-java-tracer
     dest: /opt/dd-java-agent.jar
     mode: u=rwx,g=rx,o=rx
   become: true
