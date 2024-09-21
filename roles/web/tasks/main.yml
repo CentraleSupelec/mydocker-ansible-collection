@@ -69,7 +69,7 @@
 
 - name: Install datadog javaagent
   ansible.builtin.get_url:
-    url: https://search.maven.org/classic/remote_content?g=com.datadoghq&a=dd-java-agent&v=LATEST
+    url: https://dtdg.co/latest-java-tracer
     dest: /opt/dd-java-agent.jar
     mode: u=rwx,g=rx,o=rx
   become: true
@@ -290,6 +290,24 @@
     owner: www-data
     group: www-data
     state: link
+  become: true
+
+- name: Install custom logo
+  ansible.builtin.copy:
+    src: "{{ logo_filename }}"
+    dest: /opt/thuv/releases/front/{{ front_version }}/dist/NewMyDockerFront/assets/Logo_Ecole.png
+    owner: www-data
+    group: www-data
+  when: logo_filename != None
+  become: true
+
+- name: Install custom favicon
+  ansible.builtin.copy:
+    src: "{{ favicon_filename }}"
+    dest: /opt/thuv/releases/front/{{ front_version }}/dist/NewMyDockerFront/favicon.ico
+    owner: www-data
+    group: www-data
+  when: favicon_filename != None
   become: true
 
 - name: Add backend systemd service

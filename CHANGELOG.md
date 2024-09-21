@@ -5,6 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+## 0.11.0
+### Fixed
+- Fix dd-java-agent URL
+
+## 0.10.0
+### Changed
+- Add config for OIDC (`oidc_audience` / `oidc_issuer` / `oidc_idps` / `oidc_scope` / `auto_login`)
+- Add config for custom logo and favicon. Put them in a `files/` directory next to your `inventory/` dir and set `logo_filename`/`favicon/filename` to `"{{ inventory_dir }}/../../files/myfile.png"`
+- Allow empty `cas_base_url` to disable CAS login
+
+### Fixed
+- Fix if services exist in mode replicated-job or global-job
+
 ## 0.9.0
 ### Changed
 - Add labels to caddy to fallback to status 410
