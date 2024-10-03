@@ -1,16 +1,57 @@
 ---
-- name: Create caddy service
-  docker_swarm_service:
-    name: caddy
-    image: lucaslorentz/caddy-docker-proxy:ci-alpine
-    replicas: 1
-    labels:
+- name: Ensure aristote dispatcher variables are set when proxy_aristote_dispatcher is true
+  assert:
+    that:
+      - "{{ item }} is defined"
+      - "{{ item }} is not none"
+      - "{{ item }} | length > 0"
+    fail_msg: "{{ item }} must be set when proxy_aristote_dispatcher is true"
+  loop:
+    - aristote_dispatcher_url
+    - aristote_dispatcher_token
+    - aristote_dispatcher_alias
+  when: proxy_aristote_dispatcher | bool
+
+- name: Set caddy labels
+  set_fact:
+    caddy_labels:
       caddy_0: "(default_response)"
       caddy_0.respond: "410"
       caddy_1: "http://"
       caddy_1.import: "default_response"
       caddy_2: "https://"
       caddy_2.import: "default_response"
+    caddy_aristote_dispatcher_labels:
+      caddy_3: "{{ aristote_dispatcher_alias }}"
+      caddy_3.tls: "{{ caddy_cert_file_target_path }} {{ caddy_key_file_target_path }}"
+      caddy_3.@denied: "not client_ip {{ caddy_overlay_network_subnet }}"
+      caddy_3.handle: "@denied"
+      caddy_3.handle.respond: "401"
+      caddy_3.reverse_proxy: "{{ aristote_dispatcher_url }}"
+      caddy_3.reverse_proxy.header_up_0: Host {upstream_hostport}
+      caddy_3.reverse_proxy.header_up_1: 'Authorization "Bearer {{ aristote_dispatcher_token }}"'
+
+- name: If proxy_aristote_dispatcher, merge caddy_aristote_dispatcher_labels into caddy_labels
+  set_fact:
+    caddy_labels: "{{ caddy_labels | combine(caddy_aristote_dispatcher_labels) }}"
+  when: proxy_aristote_dispatcher | bool
+
+- name: Initialize network dictionary
+  set_fact:
+    caddy_network:
+      name: "{{ caddy_overlay_network }}"
+
+- name: Add aliases to caddy_network if proxy_aristote_dispatcher is true
+  set_fact:
+    caddy_network: "{{ caddy_network | combine({'aliases': [aristote_dispatcher_alias]}) }}"
+  when: proxy_aristote_dispatcher | bool
+
+- name: Create caddy service
+  docker_swarm_service:
+    name: caddy
+    image: lucaslorentz/caddy-docker-proxy:ci-alpine
+    replicas: 1
+    labels: "{{ caddy_labels }}"
     publish:
       - published_port: 80
         target_port: 80
@@ -19,7 +60,7 @@
         target_port: 443
         mode: ingress
     networks:
-      - "{{ caddy_overlay_network }}"
+      - "{{ caddy_network }}"
     mounts:
       - source: /var/run/docker.sock
         target: /var/run/docker.sock

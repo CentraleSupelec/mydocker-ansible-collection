@@ -21,3 +21,9 @@ caddy_cert_file_source_path: "{{ undef(hint='caddy_cert_file_source_path must be
 caddy_key_file_source_path: "{{ undef(hint='caddy_key_file_source_path must be defined') }}"
 caddy_cert_file_target_path: /etc/ssl/caddy_reverse_proxy/cert.pem
 caddy_key_file_target_path: /etc/ssl/caddy_reverse_proxy/key.pem
+caddy_overlay_network_subnet: 192.168.0.0/18
+proxy_aristote_dispatcher: ~
+aristote_dispatcher_tls_internal: ~
+aristote_dispatcher_url: ~
+aristote_dispatcher_token: ~
+aristote_dispatcher_alias: ~

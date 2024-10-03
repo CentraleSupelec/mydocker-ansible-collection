@@ -5,5 +5,5 @@
     attachable: yes
     driver: overlay
     ipam_config:
-      - gateway: "192.168.0.1"
-        subnet: "192.168.0.0/18"
+      - gateway: "{{ caddy_overlay_network_subnet | ansible.utils.ipaddr('next_usable') }}"
+        subnet: "{{ caddy_overlay_network_subnet }}"
