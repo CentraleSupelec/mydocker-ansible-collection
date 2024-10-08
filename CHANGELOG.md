@@ -7,6 +7,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ## Unreleased
 ### Changed
 - Add Aristote Dispatcher reverse proxy from inside containers in the swarm
+- Add variable for Websocket connections close delay
 
 ## 0.11.0
 ### Fixed
