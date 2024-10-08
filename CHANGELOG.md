@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## 0.12.0
 ### Changed
 - Add Aristote Dispatcher reverse proxy from inside containers in the swarm
 - Add variable for Websocket connections close delay
