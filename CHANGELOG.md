@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+## 0.14.0
+### Changed
+- use fully qualified names for roles and activate Datadog only if enable_datadog is set to true
+
 ## 0.13.0
 ### Changed
 - Allow to upload files up to 3GB
