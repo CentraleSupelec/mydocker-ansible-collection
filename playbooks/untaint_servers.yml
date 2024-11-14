@@ -2,7 +2,7 @@
   hosts: localhost
   strategy: linear
   roles:
-    - retrieve_state
-    - role: untaint_servers
+    - centralesupelec.mydocker.retrieve_state
+    - role: centralesupelec.mydocker.untaint_servers
       vars:
         terraform_state: "{{ retrieve_state_result }}"

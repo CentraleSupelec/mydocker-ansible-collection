@@ -1,8 +1,9 @@
 ---
 - name: Install common tools
   hosts: all
-  roles: 
-   - common
-   -  { role: Datadog.datadog }
-   - monitoring
+  roles:
+  - centralesupelec.mydocker.common
+  - role: Datadog.datadog
+    when: enable_datadog | default(False)
+  - centralesupelec.mydocker.monitoring
   become: yes
