@@ -2,9 +2,9 @@
 - name: Ensure aristote dispatcher variables are set when proxy_aristote_dispatcher is true
   assert:
     that:
-      - "{{ item }} is defined"
-      - "{{ item }} is not none"
-      - "{{ item }} | length > 0"
+      - vars[item] is defined
+      - vars[item] is not none
+      - vars[item] | length > 0
     fail_msg: "{{ item }} must be set when proxy_aristote_dispatcher is true"
   loop:
     - aristote_dispatcher_url
@@ -15,6 +15,7 @@
 - name: Set caddy labels
   set_fact:
     caddy_labels:
+      caddy_controlled_server:
       caddy_0: "(default_response)"
       caddy_0.respond: "410"
       caddy_1: "http://"
@@ -46,12 +47,20 @@
     caddy_network: "{{ caddy_network | combine({'aliases': [aristote_dispatcher_alias]}) }}"
   when: proxy_aristote_dispatcher | bool
 
-- name: Create caddy service
+- name: Remove the old caddy service
   docker_swarm_service:
     name: caddy
+    state: absent
+
+- name: Create caddy server service
+  docker_swarm_service:
+    name: caddy_server
     image: lucaslorentz/caddy-docker-proxy:ci-alpine
-    replicas: 1
+    replicas: "{{ caddy_server_replicas }}"
     labels: "{{ caddy_labels }}"
+    env:
+      - CADDY_DOCKER_MODE=server
+      - CADDY_CONTROLLER_NETWORK={{ caddy_controller_network_subnet }}
     publish:
       - published_port: 80
         target_port: 80
@@ -61,10 +70,8 @@
         mode: ingress
     networks:
       - "{{ caddy_network }}"
+      - "{{ caddy_controller_network }}"
     mounts:
-      - source: /var/run/docker.sock
-        target: /var/run/docker.sock
-        type: bind
       - source: "{{ caddy_cert_file_source_path }}"
         target: "{{ caddy_cert_file_target_path }}"
         type: bind
@@ -73,6 +80,36 @@
         target: "{{ caddy_key_file_target_path }}"
         type: bind
         readonly: yes
+    placement:
+      constraints:
+        - node.role == worker
+      preferences:
+        - spread: node.id
+
+- name: Create a caddy config folder if it does not exist
+  ansible.builtin.file:
+    path: /home/ubuntu/config/caddy
+    state: directory
+    mode: '0755'
+
+- name: Create caddy controller service
+  docker_swarm_service:
+    name: caddy_controller
+    image: lucaslorentz/caddy-docker-proxy:ci-alpine
+    replicas: 1
+    env:
+      - CADDY_DOCKER_MODE=controller
+      - CADDY_CONTROLLER_NETWORK={{ caddy_controller_network_subnet }}
+    networks:
+      - "{{ caddy_network }}"
+      - "{{ caddy_controller_network }}"
+    mounts:
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        type: bind
+      - source: /home/ubuntu/config/caddy
+        target: /config/caddy
+        type: bind
     placement:
       constraints:
         - node.role == manager

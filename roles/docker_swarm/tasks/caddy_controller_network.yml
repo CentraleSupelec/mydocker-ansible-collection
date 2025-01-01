@@ -1,0 +1,9 @@
+---
+- name: Create caddy controller network if it doesn't exit
+  docker_network:
+    name: "{{ caddy_controller_network }}"
+    attachable: yes
+    driver: overlay
+    ipam_config:
+      - gateway: "{{ caddy_controller_network_subnet | ansible.utils.ipaddr('next_usable') }}"
+        subnet: "{{ caddy_controller_network_subnet }}"
