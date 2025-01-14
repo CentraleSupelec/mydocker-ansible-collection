@@ -16,6 +16,7 @@ None.
 * (default `/opt/docker-seccomp`) `docker_swarm_seccomp_folder`: folder on which to store seccomp configuration
 * (default `rbd`) `docker_swarm_volume_backend` : storage backend to use, either `rbd` for Ceph, or `fs` for filesystem
 * (default `centralesupelec/mydockervolume:latest`) `docker_swarm_volume_plugin` : volume plugin to use
+* (default `brindster/docker-plugin-cephfs`) `cephfs_plugin` : cephfs plugin to use
 * `ceph_user`
 * `ceph_ips`
 * (default `mydocker-{{ env }}`) `ceph_pool`

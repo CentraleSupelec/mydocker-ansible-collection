@@ -26,14 +26,18 @@
   when: inventory_hostname != groups['docker_swarm_manager'][0]
   community.docker.docker_node:
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
-    role: "{{ 'manager' if caddy is defined and caddy | bool else 'worker' }}"
+    role: worker
   delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
 
 - name: Create caddy overlay network
   when: inventory_hostname == groups['docker_swarm_manager'][0]
   ansible.builtin.include_tasks: caddy_overlay_network.yml
 
-- name: Create caddy service
+- name: Create caddy controller network
+  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  ansible.builtin.include_tasks: caddy_controller_network.yml
+
+- name: Create caddy services
   when: inventory_hostname == groups['docker_swarm_manager'][0]
   ansible.builtin.include_tasks: caddy_service.yml
 
@@ -60,8 +64,8 @@
   delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
   when: owner is defined
 
-- name: Disable Leader scheduling
+- name: Enable Leader scheduling
   community.docker.docker_node:
     hostname: "{{ ansible_hostname }}"
-    availability: drain
-  when: inventory_hostname == groups['docker_swarm_manager'][0] and inventory_hostname not in groups['docker_swarm_worker']
+    availability: active
+  when: inventory_hostname == groups['docker_swarm_manager'][0]

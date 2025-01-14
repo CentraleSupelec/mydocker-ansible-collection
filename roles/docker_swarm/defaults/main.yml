@@ -1,5 +1,6 @@
 docker_swarm_volume_backend: rbd # rbd OR fs
 docker_swarm_volume_plugin: centralesupelec/mydockervolume:latest
+cephfs_plugin: brindster/docker-plugin-cephfs
 docker_swarm_volume_upgrade: false
 docker_swarm_port: 2377
 docker_swarm_seccomp_folder: /opt/docker-seccomp
@@ -22,6 +23,9 @@ caddy_key_file_source_path: "{{ undef(hint='caddy_key_file_source_path must be d
 caddy_cert_file_target_path: /etc/ssl/caddy_reverse_proxy/cert.pem
 caddy_key_file_target_path: /etc/ssl/caddy_reverse_proxy/key.pem
 caddy_overlay_network_subnet: 192.168.0.0/18
+caddy_controller_network: caddy-controller
+caddy_controller_network_subnet: 192.168.64.0/25
+caddy_server_replicas: 1
 proxy_aristote_dispatcher: ~
 aristote_dispatcher_tls_internal: ~
 aristote_dispatcher_url: ~

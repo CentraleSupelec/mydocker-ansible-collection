@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+## 0.15.0
+### Changed
+- Use caddy in ditributed mode (controller + servers)
+- Add variable `cephfs_plugin` to allow setting the plugin URL
+- Add 502 to `test_connection_error_codes` variable
+- Avoid warnings in assert statement by changing `{{ item }}` to `vars[item]` 
+
 ## 0.14.0
 ### Changed
 - use fully qualified names for roles and activate Datadog only if enable_datadog is set to true
