@@ -83,6 +83,7 @@
     placement:
       constraints:
         - node.role == worker
+        - node.labels.caddy_server == true
       preferences:
         - spread: node.id
 

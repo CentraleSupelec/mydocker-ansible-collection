@@ -29,6 +29,14 @@
     role: worker
   delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
 
+- name: Add caddy server label
+  when: inventory_hostname != groups['docker_swarm_manager'][0]
+  community.docker.docker_node:
+    hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
+    labels:
+      caddy_server: "{{ 'true' if caddy_server is defined and caddy_server | bool else 'false'}}"
+  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+
 - name: Create caddy overlay network
   when: inventory_hostname == groups['docker_swarm_manager'][0]
   ansible.builtin.include_tasks: caddy_overlay_network.yml
