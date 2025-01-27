@@ -106,6 +106,7 @@
     key: "{{item.value | join('\n') if item.value is defined and item.value is iterable else ''}}"
     exclusive: true
   loop: "{{ (common_ssh_authorized_keys | default({})) | dict2items }}"
+  become: true
   tags:
     - ssh
 ...
