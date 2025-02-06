@@ -13,6 +13,12 @@ server {
 	# security
 	include nginxconfig.io/security.conf;
 
+	{% if documentation_url %}
+	location /documentation {
+		return 302 {{ documentation_url }};
+	}
+	{% endif %}
+
 	# reverse proxy
 	location /api/ {
 		proxy_pass http://127.0.0.1:{{ web_back_port }}/;
