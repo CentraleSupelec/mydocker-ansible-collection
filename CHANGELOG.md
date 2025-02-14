@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+- Fix sudo on ssh key provisioning and remove ssh key provisioning from `swarm` playbook ([!23](https://github.com/CentraleSupelec/mydocker-ansible-collection/pull/23))
+
 ## 0.17.0
 ### Fixed
 - Changed caddy to caddy_server in hosts template
