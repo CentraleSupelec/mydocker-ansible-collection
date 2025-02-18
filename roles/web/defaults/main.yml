@@ -10,6 +10,7 @@ web_pg_password: "{{ undef(hint='web_pg_password must be defined') }}"
 web_letsencrypt_email: "{{ undef(hint='web_letsencrypt_email must be defined') }}"
 web_url: "{{ undef(hint='web_url must be defined') }}"
 public_web_url: "{{ web_url }}"
+documentation_url: ~
 back_version: "{{ undef(hint='back_version must be defined') }}"
 front_version: "{{ undef(hint='front_version must be defined') }}"
 web_back_location: /usr/local/thuv/
