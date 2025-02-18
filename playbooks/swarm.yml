@@ -48,20 +48,6 @@
     - role: centralesupelec.mydocker.gpu_post_docker
       when: gpu_type is defined
 
-- name: Install ssh keys
-  hosts: docker_swarm_worker:docker_swarm_manager
-  tasks:
-    - name: Provision ssh keys
-      when: common_ssh_authorized_keys is defined
-      ansible.posix.authorized_key:
-        user: "{{ item.key }}"
-        state: present
-        key: "{{item.value | join('\n') if item.value is defined and item.value is iterable else ''}}"
-        exclusive: true
-      loop: "{{ (common_ssh_authorized_keys | default({})) | dict2items }}"
-      tags:
-        - ssh
-
 - name: Create and configure docker swarm
   hosts: docker_swarm_manager:docker_swarm_worker
   roles:

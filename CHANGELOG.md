@@ -7,7 +7,10 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ## Unreleased
 ## 0.18.0
 ### Added
-- Redirection to documentation URL
+- Redirection to documentation URL ([!25](https://github.com/CentraleSupelec/mydocker-ansible-collection/pull/25))
+
+### Fixed
+- Fix sudo on ssh key provisioning and remove ssh key provisioning from `swarm` playbook ([!23](https://github.com/CentraleSupelec/mydocker-ansible-collection/pull/23))
 
 ## 0.17.0
 ### Fixed
