@@ -56,7 +56,6 @@
   docker_swarm_service:
     name: caddy_server
     image: lucaslorentz/caddy-docker-proxy:ci-alpine
-    replicas: "{{ caddy_server_replicas }}"
     labels: "{{ caddy_labels }}"
     env:
       - CADDY_DOCKER_MODE=server
@@ -80,12 +79,10 @@
         target: "{{ caddy_key_file_target_path }}"
         type: bind
         readonly: yes
+    mode: global
     placement:
       constraints:
-        - node.role == worker
         - node.labels.caddy_server == true
-      preferences:
-        - spread: node.id
 
 - name: Create a caddy config folder if it does not exist
   ansible.builtin.file:

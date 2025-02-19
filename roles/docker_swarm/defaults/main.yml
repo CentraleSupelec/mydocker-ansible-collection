@@ -25,7 +25,6 @@ caddy_key_file_target_path: /etc/ssl/caddy_reverse_proxy/key.pem
 caddy_overlay_network_subnet: 192.168.0.0/18
 caddy_controller_network: caddy-controller
 caddy_controller_network_subnet: 192.168.64.0/25
-caddy_server_replicas: 1
 proxy_aristote_dispatcher: ~
 aristote_dispatcher_tls_internal: ~
 aristote_dispatcher_url: ~
