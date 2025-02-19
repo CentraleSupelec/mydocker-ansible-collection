@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+## 0.19.0
+### Changed
+- Set caddy server deployment mode to global and remove node selection based on role
+
 ## 0.18.0
 ### Added
 - Redirection to documentation URL ([!25](https://github.com/CentraleSupelec/mydocker-ansible-collection/pull/25))
