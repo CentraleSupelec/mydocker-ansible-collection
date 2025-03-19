@@ -6,6 +6,9 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 
 ## Unreleased
 
+## 0.22.0
+- Add custom labels to nodes
+
 ## 0.21.0
 ### Added
 - Add informations list to config.js template and default value
