@@ -29,6 +29,17 @@
     role: worker
   delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
 
+- name: Debug labels
+  ansible.builtin.debug:
+    var: labels
+
+- name: Add custom labels
+  when: inventory_hostname != groups['docker_swarm_manager'][0] and labels is defined
+  community.docker.docker_node:
+    hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
+    labels: "{{ dict(labels | map('split', '=')) }}"
+  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+
 - name: Add caddy server label
   when: inventory_hostname != groups['docker_swarm_manager'][0]
   community.docker.docker_node:
