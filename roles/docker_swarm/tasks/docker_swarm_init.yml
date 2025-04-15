@@ -29,6 +29,14 @@
     role: worker
   delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
 
+- name: Add custom labels
+  when: inventory_hostname != groups['docker_swarm_manager'][0] and labels is defined
+  community.docker.docker_node:
+    hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
+    labels: "{{ { item: 'true' } }}"
+  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+  loop: "{{ labels }}"
+
 - name: Add caddy server label
   when: inventory_hostname != groups['docker_swarm_manager'][0]
   community.docker.docker_node:
