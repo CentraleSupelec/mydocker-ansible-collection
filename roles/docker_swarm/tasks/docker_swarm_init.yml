@@ -82,6 +82,6 @@
 
 - name: Enable Leader scheduling
   community.docker.docker_node:
-    hostname: "{{ ansible_hostname }}"
+    hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
     availability: active
   when: inventory_hostname == groups['docker_swarm_manager'][0]

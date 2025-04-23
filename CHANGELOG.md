@@ -7,6 +7,10 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ## Unreleased
 - Add custom labels to nodes
 
+## 0.20.0
+### Fixed
+- Use swarm node id instead of hostname to select the target in a docker_swarm_init task
+
 ## 0.19.0
 ### Changed
 - Set caddy server deployment mode to global and remove node selection based on role
