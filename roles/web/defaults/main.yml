@@ -47,6 +47,7 @@ oidc_idps:
   # tooltip: "..."
   # idp_hint: "..."
 oidc_scope: "openid profile email"
+information: ~
 auto_login: "CAS"
 logo_filename: ~
 favicon_filename: ~

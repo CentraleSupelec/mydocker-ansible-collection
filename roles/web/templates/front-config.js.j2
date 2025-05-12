@@ -11,5 +11,6 @@ window['MY_DOCKER_APP_CONSTANTS'] = {
     "oidc_client_id": "{{ oidc_audience }}",
     "oidc_authority": "{{ oidc_issuer }}",
     "oidc_scope": "{{ oidc_scope }}",
-    "auto_login": "{{ auto_login }}"
+    "auto_login": "{{ auto_login }}",
+    "information": "{{ information | to_json }}"
 };
