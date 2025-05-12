@@ -7,6 +7,10 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ## Unreleased
 - Add custom labels to nodes
 
+## 0.21.0
+### Added
+- Add informations list to config.js template and default value
+
 ## 0.20.0
 ### Fixed
 - Use swarm node id instead of hostname to select the target in a docker_swarm_init task
