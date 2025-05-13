@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## 0.20.0
+### Fixed
+- Use swarm node id instead of hostname to select the target in a docker_swarm_init task
+
 ## 0.19.0
 ### Changed
 - Set caddy server deployment mode to global and remove node selection based on role
