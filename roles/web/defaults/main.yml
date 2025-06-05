@@ -47,6 +47,11 @@ oidc_idps:
   # tooltip: "..."
   # idp_hint: "..."
 oidc_scope: "openid profile email"
+information: ~
+#   - name: "help"
+#     title: "Information sur le service"
+#     url: "https://thuv.example.com/help"
+# The name key is only descriptive; only the value "Help" triggers a custom “no courses found” message with a docs link.
 auto_login: "CAS"
 logo_filename: ~
 favicon_filename: ~
