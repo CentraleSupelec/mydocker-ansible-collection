@@ -55,3 +55,4 @@ information: ~
 auto_login: "CAS"
 logo_filename: ~
 favicon_filename: ~
+app_name: MyDocker
