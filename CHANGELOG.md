@@ -9,6 +9,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ## 0.23.0
 ### Added
 - Added app name variable
+- Added magic link expiration variable
 
 ## 0.22.0
 ### Added

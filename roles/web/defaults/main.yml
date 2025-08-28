@@ -56,3 +56,4 @@ auto_login: "CAS"
 logo_filename: ~
 favicon_filename: ~
 app_name: MyDocker
+magic_link_expiration_in_minutes: 5
