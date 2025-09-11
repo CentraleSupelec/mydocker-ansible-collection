@@ -13,5 +13,6 @@ window['MY_DOCKER_APP_CONSTANTS'] = {
     "oidc_scope": "{{ oidc_scope }}",
     "auto_login": "{{ auto_login }}",
     "information": {{ information | to_json }},
-    "app_name": "{{ app_name }}"
+    "app_name": "{{ app_name }}",
+    "magic_link_expiration_in_minutes": {{ magic_link_expiration_in_minutes }}
 };
