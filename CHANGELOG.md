@@ -6,7 +6,12 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 
 ## Unreleased
 
+## 0.23.0
+### Added
+- Added app name variable
+
 ## 0.22.0
+### Added
 - Add custom labels to nodes
 
 ## 0.21.0
