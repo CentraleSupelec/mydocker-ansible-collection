@@ -57,3 +57,4 @@ logo_filename: ~
 favicon_filename: ~
 app_name: MyDocker
 magic_link_expiration_in_minutes: 5
+ignore_recent_last_start_date_in_seconds: 60
