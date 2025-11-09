@@ -3,7 +3,7 @@ manager ansible_host={{ generate_inventory_manager_ip }}
 {{ generate_inventory_worker_name }} ansible_host={{ generate_inventory_worker_ip }} caddy_server=true labels='["shared-pool"]'
 {% for resource in terraform_state.resources if resource.type == "openstack_compute_instance_v2" %}
 {% for instance in resource.instances if (instance.status is not defined or instance.status != "tainted") and instance.attributes.access_ip_v4 %}
-{{ instance.attributes.name }} ansible_host={{ instance.attributes.access_ip_v4 }} {% if (instance.attributes.metadata.owner|default(None)) != None %}owner={{ instance.attributes.metadata.owner }}{% endif %} {% if (instance.attributes.flavor_name|first|lower) in ["t", "g"] %}gpu_type=dedicated{% endif %} {% if instance.attributes.metadata.labels is defined and instance.attributes.metadata.labels %}labels='[{{ instance.attributes.metadata.labels | to_json }}]'{% endif %}
+{{ instance.attributes.name }} ansible_host={{ instance.attributes.access_ip_v4 }} {% if (instance.attributes.metadata.owner|default(None)) != None %}owner={{ instance.attributes.metadata.owner }}{% endif %} {% if instance.attributes.flavor_name.lower().startswith(('a10', 'a100', 'h100', 'l4', 'l40', 't1', 't2', 'rtx')) %}gpu_type=dedicated{% endif %} {% if instance.attributes.metadata.labels is defined and instance.attributes.metadata.labels %}labels='[{{ instance.attributes.metadata.labels | to_json }}]'{% endif %}
 
 {% endfor %}
 {% endfor %}
