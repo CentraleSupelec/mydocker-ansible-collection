@@ -10,6 +10,9 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ### Changed
 - List of flavor names that are gpu
 
+### Added
+- Monotlithic variable
+
 ## 0.24.0
 ### Added
 - Added ignore_recent_last_start_date_in_seconds variable
