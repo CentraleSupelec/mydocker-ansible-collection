@@ -55,7 +55,7 @@
 - name: Create caddy server service
   docker_swarm_service:
     name: caddy_server
-    image: lucaslorentz/caddy-docker-proxy:ci-alpine
+    image: "{{ caddy_docker_proxy_image }}"
     labels: "{{ caddy_labels }}"
     env:
       - CADDY_DOCKER_MODE=server
@@ -93,7 +93,7 @@
 - name: Create caddy controller service
   docker_swarm_service:
     name: caddy_controller
-    image: lucaslorentz/caddy-docker-proxy:ci-alpine
+    image: "{{ caddy_docker_proxy_image }}"
     replicas: 1
     env:
       - CADDY_DOCKER_MODE=controller
