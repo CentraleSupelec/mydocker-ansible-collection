@@ -30,4 +30,4 @@ aristote_dispatcher_tls_internal: ~
 aristote_dispatcher_url: ~
 aristote_dispatcher_token: ~
 aristote_dispatcher_alias: ~
-caddy_docker_proxy_image: "lucaslorentz/caddy-docker-proxy:2.9-alpine"
+caddy_docker_proxy_image: "lucaslorentz/caddy-docker-proxy:2.9.2-alpine"
