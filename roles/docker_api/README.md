@@ -46,6 +46,7 @@ This role should be provisioned on the Docker Swarm manager to install the `dock
 * `os_username`
 * `os_password`
 * `autoscaling_state_base_url`
+* `monolithic` (default `false`)
 
 ## Dependencies
 
