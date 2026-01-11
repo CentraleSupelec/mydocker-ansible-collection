@@ -49,7 +49,7 @@
 
 - name: Include subnet fixing tasks
   ansible.builtin.include_tasks: fix_subnet.yml
-  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  when: inventory_hostname in groups['docker_swarm_manager']
   tags:
     - docker_swarm_init
 

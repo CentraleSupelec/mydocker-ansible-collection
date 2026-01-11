@@ -66,6 +66,24 @@
     dest: "/etc/docker-api/config.yml"
   become: true
 
+- name: Add public certificate for grpc
+  ansible.builtin.copy:
+    content: "{{ grpc_server_cert }}"
+    dest: "/etc/docker-api/server.cert"
+  become: true
+
+- name: Add private key for grpc
+  ansible.builtin.copy:
+    content: "{{ grpc_server_key }}"
+    dest: "/etc/docker-api/server.key"
+  become: true
+
+- name: Add CA certificate that signed the client certificate
+  ansible.builtin.copy:
+    content: "{{ grpc_ca }}"
+    dest: "/etc/docker-api/ca.cert"
+  become: true
+
 - name: Enable and start Thuv docker API service
   ansible.builtin.systemd:
     name: thuv-docker.service
