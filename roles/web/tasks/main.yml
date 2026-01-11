@@ -341,7 +341,7 @@
     dest: "{{ web_back_config_location }}/application.properties"
   become: true
 
-- name: Add private key
+- name: Add private key for lti
   ansible.builtin.template:
     src: variable.j2
     dest: "{{ web_back_config_location }}/private-key.pem"
@@ -350,13 +350,47 @@
     variable: "{{ web_back_private_key }}"
   become: true
 
-- name: Add public key
+- name: Add public key for lti
   ansible.builtin.template:
     src: variable.j2
     dest: "{{ web_back_config_location }}/public-key.pem"
     mode: 0600
   vars:
     variable: "{{ web_back_public_key }}"
+  become: true
+
+
+- name: Create thuv back config directory
+  ansible.builtin.file:
+    path: "{{ web_back_config_location }}"/tls
+    state: directory
+  become: true
+
+- name: Add private key for grpc
+  ansible.builtin.template:
+    src: variable.j2
+    dest: "{{ web_back_config_location }}/tls/client.key"
+    mode: 0600
+  vars:
+    variable: "{{ web_back_tls_client_key }}"
+  become: true
+
+- name: Add public certificate for grpc
+  ansible.builtin.template:
+    src: variable.j2
+    dest: "{{ web_back_config_location }}/tls/client.crt"
+    mode: 0600
+  vars:
+    variable: "{{ web_back_tls_client_certificate }}"
+  become: true
+
+- name: Add CA certificate that signed the client certificate
+  ansible.builtin.template:
+    src: variable.j2
+    dest: "{{ web_back_config_location }}/tls/ca.crt"
+    mode: 0600
+  vars:
+    variable: "{{ web_back_tls_ca }}"
   become: true
 
 - name: Ensure correct permissions
