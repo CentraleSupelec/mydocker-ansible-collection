@@ -18,6 +18,9 @@ web_back_config_location: /etc/spring-configuration/
 web_back_environment: production
 web_back_private_key:
 web_back_public_key:
+web_back_tls_client_key:
+web_back_tls_client_certificate:
+web_back_tls_ca:
 web_back_port: 8080
 web_contexts_save: /opt/contexts/
 web_front_location: /var/www/front
@@ -36,6 +39,7 @@ smtp_to: []
 web_deployment_delay_in_milliseconds: 300000
 deployment_enabled: true
 terraform_state_url: "https://path.com/to/state.tf"
+# TODO: Remove go_address once multi go dev is deployed because the adresses will be in the DB for each go server
 go_address: "{{ (inventory_hostname == groups['docker_swarm_manager'][0]) | ternary('127.0.0.1',  hostvars[groups['docker_swarm_manager'][0]]['ansible_host']) }}"
 default_storage_backend: RBD # One of RBD, NFS, LOCAL
 test_connection_error_codes: 410,502,503
