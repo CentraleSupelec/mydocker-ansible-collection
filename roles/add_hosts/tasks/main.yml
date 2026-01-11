@@ -1,0 +1,22 @@
+---
+- name: Add terraform hosts
+  add_host:
+    name: "{{ item.attributes.name }}"
+    groups:
+      - docker
+      - docker_swarm_manager
+    ansible_host: "{{ item.attributes.access_ip_v4 }}"
+    owner: "{{ item.attributes.metadata.owner | default(omit) }}"
+    gpu_type: >-
+      {% if item.attributes.flavor_name.lower().startswith(('a10','a100','h100','l4','l40','t1','t2','rtx')) %}
+      dedicated
+      {% else %}
+      {{ omit }}
+      {% endif %}
+    labels: "{{ item.attributes.metadata.labels | to_json if item.attributes.metadata.labels is defined else omit }}"
+  loop: "{{ terraform_state.resources
+           | selectattr('type', 'equalto', 'openstack_compute_instance_v2')
+           | map(attribute='instances') | flatten }}"
+  loop_control:
+    label: "{{ item.attributes.name }}"
+  when: (item.status is not defined or item.status != 'tainted') and item.attributes.access_ip_v4 is defined
