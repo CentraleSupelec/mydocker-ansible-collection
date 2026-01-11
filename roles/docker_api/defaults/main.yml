@@ -41,3 +41,14 @@ caddy_key_file_target_path: /etc/ssl/caddy_reverse_proxy/key.pem
 caddy_stream_close_delay: 4h
 student_volume_size: 100 # in MB. Works only with RBD volumes.
 monolithic: false
+grpc_server_cert: "{{ undef(hint='grpc_server_cert must be defined') }}"
+grpc_server_key: "{{ undef(hint='grpc_server_key must be defined') }}"
+grpc_ca: "{{ undef(hint='grpc_ca must be defined') }}"
+create_acl_ceph: true
+rclone_s3_type:
+rclone_s3_provider:
+rclone_s3_access_key_id:
+rclone_s3_secret_access_key:
+rclone_s3_region:
+rclone_s3_endpoint:
+hosts_file_path:
