@@ -68,4 +68,8 @@ app.frontend.url=https://{{ web_url }}
 app.magic_link.expiration_in_minutes = {{ magic_link_expiration_in_minutes }}
 app.ignore_recent_last_start_date_in_seconds = {{ ignore_recent_last_start_date_in_seconds }}
 
+grpc.tls.client-key-path=file://{{ web_back_config_location }}/tls/client.key
+grpc.tls.client-cert-path=file://{{ web_back_config_location }}/tls/client.crt
+grpc.tls.ca-cert-path=file://{{ web_back_config_location }}/tls/ca.crt
+
 {{ web_extra_application_properties }}
