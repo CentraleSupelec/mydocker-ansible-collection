@@ -1,6 +1,0 @@
----
-generate_inventory_manager_ip: ~
-generate_inventory_remote_state_url: ~
-generate_inventory_web_server_ip: ~
-generate_inventory_worker_ip: ~
-generate_inventory_worker_name: ~
