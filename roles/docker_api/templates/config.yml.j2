@@ -54,3 +54,14 @@ CaddyTlsKeyPath: {{ caddy_key_file_target_path }}
 CaddyStreamCloseDelay: {{ caddy_stream_close_delay }}
 StudentVolumeSize: {{ student_volume_size }}
 Monolithic: {{ monolithic | to_json }}
+GRPCServerCertPath: "/etc/docker-api/server.cert"
+GRPCServerKeyPath: "/etc/docker-api/server.key"
+GRPCCAPath: "/etc/docker-api/ca.cert"
+CreateAclCeph: {{ create_acl_ceph | to_json }}
+RcloneS3Type: {{ rclone_s3_type }}
+RcloneS3Provider: {{ rclone_s3_provider }}
+RcloneS3AccessKeyID: {{ rclone_s3_access_key_id }}
+RcloneS3SecretAccessKey: {{ rclone_s3_secret_access_key }}
+RcloneS3Region: {{ rclone_s3_region }}
+RcloneS3Endpoint: {{ rclone_s3_endpoint }}
+HostsFilePath: {{ hosts_file_path }}
