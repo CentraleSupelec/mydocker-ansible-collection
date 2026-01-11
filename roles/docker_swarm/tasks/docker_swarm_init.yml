@@ -1,60 +1,61 @@
-- name: Manager - Init a new swarm with default parameters
+
+- name: Manager - Init swarm
   community.docker.docker_swarm:
     state: present
-    advertise_addr: "{{ hostvars[groups['docker_swarm_manager'][0]]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"
+    advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"
   register: swarm_info
-  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  when: inventory_hostname in groups['docker_swarm_manager']
 
 - name: Manager - Declare the workers join token as a fact
   ansible.builtin.set_fact:
     docker_worker_join_token: "{{ swarm_info.swarm_facts.JoinTokens.Worker }}"
-  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
-  run_once: true
+  when: inventory_hostname in groups['docker_swarm_manager']
 
 - name: Workers - Join the swarm
   community.docker.docker_swarm:
     advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"
     state: join
-    join_token: "{{ docker_worker_join_token }}"
-    remote_addrs: ["{{ hostvars[groups['docker_swarm_manager'][0]]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"]
+    join_token: "{{ hostvars[manager].docker_worker_join_token }}"
+    remote_addrs: ["{{ hostvars[manager]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"]
+  when: inventory_hostname not in groups['docker_swarm_manager']
 
 - name: Retrieve Swarm ID
   community.docker.docker_host_info:
   register: docker_info
 
 - name: Set worker roles
-  when: inventory_hostname != groups['docker_swarm_manager'][0]
+  when: inventory_hostname not in groups['docker_swarm_manager']
   community.docker.docker_node:
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
     role: worker
-  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+  delegate_to: "{{ manager }}"
 
 - name: Add custom labels
-  when: inventory_hostname != groups['docker_swarm_manager'][0] and labels is defined
+  when: inventory_hostname not in groups['docker_swarm_manager'] and labels is defined
   community.docker.docker_node:
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
     labels: "{{ { item: 'true' } }}"
-  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+  delegate_to: "{{ manager }}"
   loop: "{{ labels }}"
 
 - name: Add caddy server label
-  when: inventory_hostname != groups['docker_swarm_manager'][0]
+  when: inventory_hostname not in groups['docker_swarm_manager']
   community.docker.docker_node:
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
     labels:
       caddy_server: "{{ 'true' if caddy_server is defined and caddy_server | bool else 'false'}}"
-  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+  delegate_to: "{{ manager }}"
 
 - name: Create caddy overlay network
-  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  when: inventory_hostname in groups['docker_swarm_manager']
   ansible.builtin.include_tasks: caddy_overlay_network.yml
 
 - name: Create caddy controller network
-  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  when: inventory_hostname in groups['docker_swarm_manager']
   ansible.builtin.include_tasks: caddy_controller_network.yml
 
 - name: Create caddy services
-  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  when: inventory_hostname in groups['docker_swarm_manager']
   ansible.builtin.include_tasks: caddy_service.yml
 
 - name: Add storage label
@@ -62,14 +63,24 @@
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
     labels:
       volume_backend: "{{ docker_swarm_volume_backend }}"
-  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+  delegate_to: >-
+    {{
+      inventory_hostname
+      if inventory_hostname in groups['docker_swarm_manager']
+      else manager
+    }}
 
 - name: Add "gpu" label to the gpu nodes
   community.docker.docker_node:
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
     labels:
       gpu_type: "{{ gpu_type }}"
-  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+  delegate_to: >-
+    {{
+      inventory_hostname
+      if inventory_hostname in groups['docker_swarm_manager']
+      else manager
+    }}
   when: gpu_type is defined
 
 - name: Add "owner" label to the nodes
@@ -77,11 +88,16 @@
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
     labels:
       owner: "{{ owner }}"
-  delegate_to: "{{ groups['docker_swarm_manager'][0] }}"
+  delegate_to: >-
+    {{
+      inventory_hostname
+      if inventory_hostname in groups['docker_swarm_manager']
+      else manager
+    }}
   when: owner is defined
 
 - name: Enable Leader scheduling
   community.docker.docker_node:
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
     availability: active
-  when: inventory_hostname == groups['docker_swarm_manager'][0]
+  when: inventory_hostname in groups['docker_swarm_manager']
