@@ -1,6 +1,0 @@
----
-- name: Template inventory
-  ansible.builtin.template:
-    src: hosts.j2
-    dest: "{{ ansible_facts.env['PWD'] }}/inventories/{{ env }}/hosts"
-  delegate_to: localhost
