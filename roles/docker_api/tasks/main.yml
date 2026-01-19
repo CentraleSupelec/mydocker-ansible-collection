@@ -66,6 +66,30 @@
     dest: "/etc/docker-api/config.yml"
   become: true
 
+- name: Add public certificate for grpc
+  ansible.builtin.template:
+    src: variable.j2
+    dest: "/etc/docker-api/server.cert"
+  vars:
+    variable: "{{ grpc_server_cert }}"
+  become: true
+
+- name: Add private key for grpc
+  ansible.builtin.template:
+    src: variable.j2
+    dest: "/etc/docker-api/server.key"
+  vars:
+    variable: "{{ grpc_server_key }}"
+  become: true
+
+- name: Add CA certificate that signed the client certificate
+  ansible.builtin.template:
+    src: variable.j2
+    dest: "/etc/docker-api/ca.cert"
+  vars:
+    variable: "{{ grpc_ca }}"
+  become: true
+
 - name: Restart service Thuv docker API
   ansible.builtin.systemd:
     state: restarted
