@@ -98,6 +98,7 @@
     env:
       - CADDY_DOCKER_MODE=controller
       - CADDY_CONTROLLER_NETWORK={{ caddy_controller_network_subnet }}
+      - CADDY_DOCKER_POLLING_INTERVAL={{ caddy_polling_interval }}
     networks:
       - "{{ caddy_network }}"
       - "{{ caddy_controller_network }}"

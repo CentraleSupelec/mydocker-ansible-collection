@@ -5,13 +5,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Variable to specify caddy polling interval
+
+## 0.27.0
+### Added
+- Monotlithic variable
+
+## 0.26.0
+### Added
+- Variable to specify caddy-docker-proxy image name
 
 ## 0.25.0
 ### Changed
 - List of flavor names that are gpu
-
-### Added
-- Monotlithic variable
 
 ## 0.24.0
 ### Added
