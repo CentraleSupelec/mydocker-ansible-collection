@@ -100,6 +100,10 @@
       - CADDY_CONTROLLER_NETWORK={{ caddy_controller_network_subnet }}
       - CADDY_DOCKER_POLLING_INTERVAL={{ caddy_polling_interval }}
       - CADDY_DOCKER_PROCESS_CADDYFILE={{ caddy_process_caddyfile }}
+      - CADDY_DOCKER_MONITOR_EVENTS={{ caddy_monitor_events }}
+      - CADDY_DOCKER_EVENT_THROTTLE_INTERVAL={{ caddy_event_throttle_interval }}
+      - CADDY_DOCKER_LOCK_UPDATE={{ caddy_lock_update }}
+
     networks:
       - "{{ caddy_network }}"
       - "{{ caddy_controller_network }}"
