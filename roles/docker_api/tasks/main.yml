@@ -66,10 +66,11 @@
     dest: "/etc/docker-api/config.yml"
   become: true
 
-- name: Restart service Thuv docker API
+- name: Enable and start Thuv docker API service
   ansible.builtin.systemd:
+    name: thuv-docker.service
+    enabled: yes
     state: restarted
-    name: thuv-docker
   become: true
 
 - name: Pull rsync image
