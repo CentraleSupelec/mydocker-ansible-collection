@@ -26,7 +26,10 @@ caddy_overlay_network_subnet: 192.168.0.0/18
 caddy_controller_network: caddy-controller
 caddy_controller_network_subnet: 192.168.64.0/25
 caddy_polling_interval: 5s
+caddy_event_throttle_interval: 1m
 caddy_process_caddyfile: false
+caddy_lock_update: false
+caddy_monitor_events: true
 proxy_aristote_dispatcher: ~
 aristote_dispatcher_tls_internal: ~
 aristote_dispatcher_url: ~
