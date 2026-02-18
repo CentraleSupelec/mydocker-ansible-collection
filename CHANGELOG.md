@@ -6,6 +6,9 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 
 ## Unreleased
 ### Added
+- Load test user credentials
+
+### Added
 - Variable to specify caddy polling interval
 
 ## 0.27.0
