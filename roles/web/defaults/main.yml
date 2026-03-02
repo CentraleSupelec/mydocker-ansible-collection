@@ -57,6 +57,10 @@ logo_filename: ~
 favicon_filename: ~
 app_name: MyDocker
 magic_link_expiration_in_minutes: 5
+## For the front
+polling_interval_in_milliseconds: 30000
+## For the back
+polling_interval_user_courses_in_milliseconds: 15000
 ignore_recent_last_start_date_in_seconds: 60
 test_username: ~
 test_password: ~
