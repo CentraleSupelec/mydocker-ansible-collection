@@ -8,11 +8,22 @@
   environment:
     OS_REGION_NAME: "{{ item.value.region }}"
 
+- name: Debug server_info structure
+  ansible.builtin.debug:
+    var: server_info
+  when: server_info is defined
+
+- name: Debug item structure
+  ansible.builtin.debug:
+    var: item
+  when: item is defined
+
 - name: Untaint server {{ item.value.name }}/{{ item.value.id }}
   ansible.builtin.command:
     chdir: "{{ terraform_dir }}"
     cmd: terraform untaint {{ item.key | quote }}
   when:
+    - server_info.servers is defined
     - server_info.servers | length
     - server_info.servers.0["vm_state"] in ["active", "building"]
     - server_info.servers.0["power_state"] in [0, 1]
@@ -20,8 +31,42 @@
 
 - name: Remove named server in error {{ item.value.name }}/{{ item.value.id }} from TFVARS
   when:
+    - server_info.servers is defined
     - server_info.servers | length
     - server_info.servers.0["vm_state"] == "error"
     - item.value.name in named_workers
   ansible.builtin.set_fact:
     named_workers: "{{ named_workers | dict2items | rejectattr('key', 'equalto', item.value.name) | items2dict }}"
+
+
+# - name: Calc time
+#   ansible.builtin.debug:
+#     msg: >-
+#       '{{ (("2026-03-04 13:08:37 +0000 UTC" | to_datetime("%Y-%m-%d %H:%M:%S %z %Z")) - ("%Y-%m-%d %H:%M:%S %z" | strftime(ansible_date_time.epoch) | to_datetime("%Y-%m-%d %H:%M:%S %z")) ).total_seconds()  }}'
+
+# - name: Remove named server if past timeout from TFVARS
+#   when:
+#     - item.value.name in named_workers
+#     - item.value.metadata.request_date is defined
+#     - >
+#       (
+#         ("%Y-%m-%d %H:%M:%S %z" | strftime(ansible_date_time.epoch) | to_datetime("%Y-%m-%d %H:%M:%S %z"))
+#         -
+#         (item.value.metadata.request_date | to_datetime("%Y-%m-%d %H:%M:%S %z %Z"))
+#       )
+#       .total_seconds() > (instance_timeout_seconds | int)
+#   ansible.builtin.set_fact:
+#     named_workers: >-
+#       {{
+#         named_workers
+#         | dict2items
+#         | rejectattr('key', 'equalto', item.value.name)
+#         | items2dict
+#       }}
+
+- name: Show final named_workers in a readable format
+  ansible.builtin.debug:
+    msg: >-
+      {% for key, value in named_workers.items() %}
+      {{ key }} : {{ value }}
+      {% endfor %}
