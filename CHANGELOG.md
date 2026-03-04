@@ -7,6 +7,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ## Unreleased
 ### Added
 - Polling interval variables for front / back to poll active courses
+- Remove tainted servers that have been stuck for too long
 
 ## 0.31.0
 ### Added
