@@ -6,8 +6,21 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 
 ## Unreleased
 ### Added
+- Polling interval variables for front / back to poll active courses
+
+## 0.31.0
+### Added
 - Load test user credentials
 
+## 0.30.0
+### Added
+- Variables to specify event throttle interval and toggle event monitoring / toggle locking update function for custom caddy image 
+
+## 0.29.0
+### Added
+- Variable to deactivate caddy process file
+
+## 0.28.0
 ### Added
 - Variable to specify caddy polling interval
 
