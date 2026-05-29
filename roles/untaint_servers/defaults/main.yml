@@ -1,2 +1,3 @@
 terraform_dir: "{{ playbook_dir }}/terraform"
 tfvars_file: terraform.tfvars.json
+instance_timeout_in_seconds: 2700

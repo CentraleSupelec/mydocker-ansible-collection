@@ -25,3 +25,23 @@
     - item.value.name in named_workers
   ansible.builtin.set_fact:
     named_workers: "{{ named_workers | dict2items | rejectattr('key', 'equalto', item.value.name) | items2dict }}"
+
+- name: Remove named server if past timeout from TFVARS
+  when:
+    - item.value.name in named_workers
+    - item.value.metadata.request_date is defined
+    - >
+      (
+        ("%Y-%m-%d %H:%M:%S %z" | strftime(ansible_date_time.epoch) | to_datetime("%Y-%m-%d %H:%M:%S %z"))
+        -
+        (item.value.metadata.request_date | to_datetime("%Y-%m-%d %H:%M:%S %z %Z"))
+      )
+      .total_seconds() > (instance_timeout_in_seconds | int)
+  ansible.builtin.set_fact:
+    named_workers: >-
+      {{
+        named_workers
+        | dict2items
+        | rejectattr('key', 'equalto', item.value.name)
+        | items2dict
+      }}
