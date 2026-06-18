@@ -54,6 +54,8 @@
   roles:
     - role: "nickjj.docker"
       tags: ["docker"]
+      vars:
+        docker__version: "27.3.1"
     # Install NVIDIA docker runtime after Docker to avoid installing docker-ce as a default APT dependency for the driver
     - role: centralesupelec.mydocker.gpu_post_docker
       when: gpu_type is defined
