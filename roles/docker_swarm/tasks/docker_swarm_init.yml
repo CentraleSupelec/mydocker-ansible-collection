@@ -11,6 +11,15 @@
     docker_worker_join_token: "{{ swarm_info.swarm_facts.JoinTokens.Worker }}"
   when: inventory_hostname in groups['docker_swarm_manager']
 
+- name: Debug swarm join variables safely
+  ansible.builtin.debug:
+    msg:
+      manager: "{{ manager | default('UNDEFINED') }}"
+      docker_swarm_port: "{{ docker_swarm_port | default('UNDEFINED') }}"
+      worker_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] | default('UNDEFINED') }}"
+      manager_ip: "{{ hostvars[manager]['ansible_default_ipv4']['address'] | default('UNDEFINED') }}"
+      worker_join_token: "{{ hostvars[manager].docker_worker_join_token | default('UNDEFINED') }}"
+
 - name: Workers - Join the swarm
   community.docker.docker_swarm:
     advertise_addr: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ docker_swarm_port }}"
