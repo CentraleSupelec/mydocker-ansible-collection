@@ -38,6 +38,10 @@ deployment_enabled: true
 terraform_state_url: "https://path.com/to/state.tf"
 go_address: "{{ (inventory_hostname == groups['docker_swarm_manager'][0]) | ternary('127.0.0.1',  hostvars[groups['docker_swarm_manager'][0]]['ansible_host']) }}"
 default_storage_backend: RBD # One of RBD, NFS, LOCAL
+# SaveData stopgap assumption: the submission-volume backend tracks the swarm working-volume
+# backend (rbd -> cephfs submission, fs -> filesystem submission). If those diverge in a future
+# deploy mode, derive this gate from the submission backend instead.
+save_student_work_enabled: "{{ (docker_swarm_volume_backend | default('fs')) == 'rbd' }}"
 test_connection_error_codes: 410,502,503
 test_connection_disable_ssl_validation: false
 oidc_audience: ~

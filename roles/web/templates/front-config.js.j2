@@ -6,6 +6,7 @@ window['MY_DOCKER_APP_CONSTANTS'] = {
         "logout_url": "{{ (cas_base_url != None)|ternary(cas_base_url ~ '/logout',  '') }}"
     },
     "deployment_enabled": {{ deployment_enabled | to_json }},
+    "save_student_work_enabled": {{ save_student_work_enabled | to_json }},
     "default_storage_backend": {{ default_storage_backend | to_json }},
     "oidc_idps": {{ oidc_idps | to_json}},
     "oidc_client_id": "{{ oidc_audience }}",
