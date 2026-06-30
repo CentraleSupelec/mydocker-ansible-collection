@@ -1,4 +1,14 @@
 ---
+- name: Assert docker_swarm_volume_backend is explicit and valid for save-data gating
+  ansible.builtin.assert:
+    that:
+      - docker_swarm_volume_backend is defined
+      - docker_swarm_volume_backend in ['rbd', 'fs']
+    fail_msg: >-
+      docker_swarm_volume_backend must be explicitly set to 'rbd' or 'fs'.
+      The save-data stopgap derives SAVE_STUDENT_WORK_ENABLED/save_student_work_enabled
+      from this variable and must not fail open on an unset or unknown backend.
+
 - name: Install basic utilities
   ansible.builtin.apt:
     name:
