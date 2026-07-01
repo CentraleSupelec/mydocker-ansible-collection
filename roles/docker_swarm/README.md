@@ -14,7 +14,7 @@ None.
 * (default `2377`) `docker_swarm_port`: the port for the advertise address of the swarm
 * (default `false`) `docker_swarm_seccomp_override`: whether to override seccomp configuration
 * (default `/opt/docker-seccomp`) `docker_swarm_seccomp_folder`: folder on which to store seccomp configuration
-* (default `fs`) `docker_swarm_volume_backend` : storage backend to use, either `rbd` for Ceph, or `fs` for filesystem
+* (default `rbd`) `docker_swarm_volume_backend` : storage backend to use, either `rbd` for Ceph, or `fs` for filesystem
 * (default `centralesupelec/mydockervolume:latest`) `docker_swarm_volume_plugin` : volume plugin to use
 * (default `120`) `docker_swarm_volume_enable_timeout` : HTTP client timeout in seconds that dockerd applies to every volume driver call, passed to `docker plugin enable --timeout`. `docker plugin install` enables the plugin itself and has no such flag, so without an explicit enable the host inherits the daemon default and keeps it across daemon restarts. Under that default, concurrent volume creates were measured failing while the volumes were in fact created
 * (default `false`) `docker_swarm_volume_force_enable_timeout` : set true for one run to re-enable the plugin with the timeout above on hosts that already have it installed. The current value cannot be read back, so this cannot be conditional; it briefly interrupts volume operations on every targeted host
