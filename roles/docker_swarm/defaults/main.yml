@@ -1,4 +1,4 @@
-docker_swarm_volume_backend: fs # rbd OR fs; fail closed for save-data gating
+docker_swarm_volume_backend: rbd # rbd OR fs
 docker_swarm_volume_plugin: centralesupelec/mydockervolume:latest
 cephfs_plugin: brindster/docker-plugin-cephfs
 docker_swarm_volume_upgrade: false
