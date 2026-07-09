@@ -52,3 +52,6 @@ rclone_s3_secret_access_key:
 rclone_s3_region:
 rclone_s3_endpoint:
 hosts_file_path:
+volume_mounts: []
+  # - source: ""
+  #   target: ""
