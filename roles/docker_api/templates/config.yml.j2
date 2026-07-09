@@ -65,3 +65,8 @@ RcloneS3SecretAccessKey: {{ rclone_s3_secret_access_key }}
 RcloneS3Region: {{ rclone_s3_region }}
 RcloneS3Endpoint: {{ rclone_s3_endpoint }}
 HostsFilePath: {{ hosts_file_path }}
+VolumeMounts:
+{% for volume_mount in volume_mounts %}
+  - Source: "{{ volume_mount.source }}"
+    Target: "{{ volume_mount.target }}"
+{% endfor %}
