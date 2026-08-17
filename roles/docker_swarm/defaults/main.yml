@@ -36,3 +36,6 @@ aristote_dispatcher_url: ~
 aristote_dispatcher_token: ~
 aristote_dispatcher_alias: ~
 caddy_docker_proxy_image: "lucaslorentz/caddy-docker-proxy:2.9.2-alpine"
+on_the_fly_environmenets_image: ~
+on_the_fly_environmenets_source: shared
+on_the_fly_environmenets_target: /cache

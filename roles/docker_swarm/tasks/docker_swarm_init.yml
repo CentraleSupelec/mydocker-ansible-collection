@@ -57,6 +57,21 @@
   when: inventory_hostname in groups['docker_swarm_manager']
   ansible.builtin.include_tasks: caddy_service.yml
 
+- name: Create on the fly environments service
+  docker_swarm_service:
+    name: on_the_fly_environments
+    image: "{{ on_the_fly_environmenets_image }}"
+    networks:
+      - "{{ caddy_network }}"
+    mounts:
+      - source: "{{ on_the_fly_environmenets_source }}"
+        target: "{{ on_the_fly_environmenets_target }}"
+        type: volume
+    placement:
+      constraints:
+        - node.hostname == {{ groups['docker_swarm_manager'][0] }}
+    when: on_the_fly_environmenets_image is defined
+
 - name: Add storage label
   community.docker.docker_node:
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
