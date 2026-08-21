@@ -8,6 +8,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ### Added
 - Polling interval variables for front / back to poll active courses
 - Remove tainted servers that have been stuck for too long
+- Pass `--timeout` when enabling the mydockervolume plugin, on both the rbd and fs backends, with `docker_swarm_volume_enable_timeout` (default 120) and `docker_swarm_volume_force_enable_timeout` to apply it to already-installed hosts
 
 ## 0.31.0
 ### Added

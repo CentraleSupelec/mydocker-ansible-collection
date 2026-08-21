@@ -2,6 +2,17 @@ docker_swarm_volume_backend: rbd # rbd OR fs
 docker_swarm_volume_plugin: centralesupelec/mydockervolume:latest
 cephfs_plugin: brindster/docker-plugin-cephfs
 docker_swarm_volume_upgrade: false
+# HTTP client timeout dockerd applies to every volume driver call. `docker
+# plugin install` enables the plugin itself and has no --timeout flag, so a
+# host installed without an explicit enable inherits the daemon default, which
+# survives daemon restarts. Measured on preprod: under the default, 33 of 100
+# concurrent volume creates failed while the volumes were in fact created.
+docker_swarm_volume_enable_timeout: 120
+# Set true for one run to re-enable the plugin with the timeout above on hosts
+# that already have it installed. There is no way to read the current value
+# back, so this cannot be made conditional; it briefly interrupts volume
+# operations on every targeted host.
+docker_swarm_volume_force_enable_timeout: false
 docker_swarm_port: 2377
 docker_swarm_seccomp_folder: /opt/docker-seccomp
 docker_swarm_seccomp_override: false
