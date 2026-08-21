@@ -25,6 +25,24 @@
   register: output
   changed_when: '"Installed plugin" in output.stdout'
 
+# `docker plugin install` above enables the plugin with the daemon's default
+# HTTP client timeout and offers no --timeout flag, so re-enable explicitly to
+# set it. Only needed when this role just installed or upgraded the plugin;
+# otherwise the value already in place is left alone.
+- name: Disable centralesupelec/mydockervolume plugin to set the enable timeout
+  ansible.builtin.command: docker plugin disable -f centralesupelec/mydockervolume
+  when: output.changed or docker_swarm_volume_force_enable_timeout
+  register: output_timeout_disable
+  changed_when: output_timeout_disable.rc == 0
+
+- name: Enable centralesupelec/mydockervolume plugin with an explicit timeout
+  ansible.builtin.command: >-
+    docker plugin enable --timeout {{ docker_swarm_volume_enable_timeout }}
+    centralesupelec/mydockervolume
+  when: output.changed or docker_swarm_volume_force_enable_timeout
+  register: output_timeout_enable
+  changed_when: output_timeout_enable.rc == 0
+
 - name: Get docker centralesupelec/mydockervolume plugin env configuration
   ansible.builtin.command: docker plugin inspect -f {{ '{{.Settings.Env}}' }} centralesupelec/mydockervolume
   changed_when: false
@@ -49,7 +67,9 @@
   changed_when: output.rc == 0
 
 - name: Enable centralesupelec/mydockervolume plugin
-  ansible.builtin.command: docker plugin enable centralesupelec/mydockervolume
+  ansible.builtin.command: >-
+    docker plugin enable --timeout {{ docker_swarm_volume_enable_timeout }}
+    centralesupelec/mydockervolume
   when: ceph_user not in rbd_env_list.stdout
   register: output
   changed_when: output.rc == 0
