@@ -10,30 +10,57 @@
     docker_swarm_volume_upgrade_internal: true
   when: (plugin_inspect.rc == 0) and (docker_swarm_volume_plugin != (plugin_inspect.stdout|replace("docker.io/", ""))) and docker_swarm_volume_upgrade
 
-- name: Remove old plugin
-  ansible.builtin.command: docker plugin rm -f centralesupelec/mydockervolume
+# Upgrade in place instead of rm -f + install: rm -f deletes the docker-side
+# volume records served by the driver.
+- name: Disable centralesupelec/mydockervolume plugin before upgrade
+  ansible.builtin.command: docker plugin disable -f centralesupelec/mydockervolume
+  when: docker_swarm_volume_upgrade_internal
+  register: output
+  changed_when: output.rc == 0
+  failed_when: false
+
+- name: Upgrade centralesupelec/mydockervolume plugin in place
+  ansible.builtin.command: >-
+    docker plugin upgrade --skip-remote-check --grant-all-permissions
+    centralesupelec/mydockervolume {{ docker_swarm_volume_plugin }}
+  when: docker_swarm_volume_upgrade_internal
+
+# docker plugin upgrade preserves the previous Settings and does not seed env
+# vars that are new in the upgraded version's config, so set them explicitly
+# (the plugin is still disabled here).
+- name: Seed plugin settings the upgrade does not carry over
+  ansible.builtin.command: docker plugin set centralesupelec/mydockervolume "{{ item }}"
+  loop:
+    - SHELL_TIMEOUT_SECONDS=7
+    - SHELL_RETRIES=3
   when: docker_swarm_volume_upgrade_internal
 
 - name: Install docker centralesupelec/mydockervolume plugin
-  ansible.builtin.command: "docker plugin install {{ docker_swarm_volume_plugin }} --alias=centralesupelec/mydockervolume LOG_LEVEL=debug DRIVER_MODE=FS --grant-all-permissions"
-  when: '("not found" in plugin_inspect.stderr) or docker_swarm_volume_upgrade_internal'
+  ansible.builtin.command: >-
+    docker plugin install {{ docker_swarm_volume_plugin }}
+    --alias=centralesupelec/mydockervolume
+    LOG_LEVEL=warning DRIVER_MODE=FS
+    SHELL_TIMEOUT_SECONDS=7 SHELL_RETRIES=3
+    --grant-all-permissions
+  when: '"not found" in plugin_inspect.stderr'
   register: output
   changed_when: '"Installed plugin" in output.stdout'
 
 # `docker plugin install` above enables the plugin with the daemon's default
 # HTTP client timeout and offers no --timeout flag, so re-enable explicitly to
-# set it. Only needed when this role just installed or upgraded the plugin;
-# otherwise the value already in place is left alone.
+# set it. Also runs after an in-place upgrade, which leaves the plugin
+# disabled. Otherwise the value already in place is left alone.
 - name: Disable centralesupelec/mydockervolume plugin to set the enable timeout
   ansible.builtin.command: docker plugin disable -f centralesupelec/mydockervolume
-  when: output.changed or docker_swarm_volume_force_enable_timeout
+  when: output.changed or docker_swarm_volume_upgrade_internal or docker_swarm_volume_force_enable_timeout
   register: output_timeout_disable
   changed_when: output_timeout_disable.rc == 0
+  failed_when: false
 
 - name: Enable centralesupelec/mydockervolume plugin with an explicit timeout
   ansible.builtin.command: >-
     docker plugin enable --timeout {{ docker_swarm_volume_enable_timeout }}
     centralesupelec/mydockervolume
-  when: output.changed or docker_swarm_volume_force_enable_timeout
+  when: output.changed or docker_swarm_volume_upgrade_internal or docker_swarm_volume_force_enable_timeout
   register: output_timeout_enable
   changed_when: output_timeout_enable.rc == 0
