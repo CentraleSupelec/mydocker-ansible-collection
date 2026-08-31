@@ -52,9 +52,11 @@
   hosts: docker_swarm_manager:docker_swarm_worker
   roles:
     - centralesupelec.mydocker.ceph_install
-    - role: centralesupelec.mydocker.docker_swarm
-      vars:
-        docker_swarm_volume_backend: "{{ enable_ceph | ternary('rbd', 'fs') }}"
+    # docker_swarm_volume_backend is no longer pinned here: as a role var it
+    # outranked inventory group_vars, so inventories could not override it. The
+    # same enable_ceph derivation now lives in the role's defaults, which an
+    # inventory can override.
+    - centralesupelec.mydocker.docker_swarm
   become: true
 
 - name: Create and configure swap on workers

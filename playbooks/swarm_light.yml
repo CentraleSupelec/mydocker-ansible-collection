@@ -3,7 +3,6 @@
   roles:
     - role: centralesupelec.mydocker.assert_on_prem
       when: gpu_type is defined
-    - role: centralesupelec.mydocker.docker_swarm
-      vars:
-        docker_swarm_volume_backend: "{{ enable_ceph | ternary('rbd', 'fs') }}"
+    # Backend no longer pinned as a role var here; see the role defaults.
+    - centralesupelec.mydocker.docker_swarm
   become: true
