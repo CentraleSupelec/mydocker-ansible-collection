@@ -1,4 +1,9 @@
-docker_swarm_volume_backend: rbd # rbd OR fs
+# rbd OR fs. Derived from enable_ceph so the historical behaviour is unchanged
+# for inventories that never set it, but living in defaults/ instead of a role
+# `vars:` entry means an inventory can now actually override it. As a role var
+# it outranked group_vars, so a `docker_swarm_volume_backend: fs` in an
+# inventory silently did nothing (found on the VD repos, 2026-08-31).
+docker_swarm_volume_backend: "{{ enable_ceph | default(false) | ternary('rbd', 'fs') }}"
 docker_swarm_volume_plugin: centralesupelec/mydockervolume:latest
 cephfs_plugin: brindster/docker-plugin-cephfs
 docker_swarm_volume_upgrade: false
