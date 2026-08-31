@@ -33,6 +33,11 @@
   loop:
     - SHELL_TIMEOUT_SECONDS=7
     - SHELL_RETRIES=3
+    # Also re-asserted, not just seeded: the install task sets LOG_LEVEL=warning, but
+    # `docker plugin upgrade` preserves whatever the host already had. A monolith
+    # upgraded from a 2023 build on 2026-08-31 came through on LOG_LEVEL=debug, which
+    # floods the docker journal via dockerd's stderr forwarding.
+    - LOG_LEVEL=warning
   when: docker_swarm_volume_upgrade_internal
 
 - name: Install docker centralesupelec/mydockervolume plugin
