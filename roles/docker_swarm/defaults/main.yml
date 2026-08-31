@@ -18,6 +18,15 @@ docker_swarm_volume_enable_timeout: 120
 # back, so this cannot be made conditional; it briefly interrupts volume
 # operations on every targeted host.
 docker_swarm_volume_force_enable_timeout: false
+# FS mode only. Empty = guard off, which is 1.3.x behaviour. Set to a filename to make
+# the plugin refuse Create and Mount unless that marker is readable under its root, so a
+# backing store that is not mounted fails loudly instead of silently accepting work into
+# a directory that vanishes when the store returns. Rehearsed on the VD test hosts
+# (NFS export) 2026-08-31: with the export unmounted, Create fails with "backing store
+# not ready". Matters most where the root is a network mount.
+docker_swarm_volume_fs_ready_marker: ""
+# Host path bound into the plugin as its volume root; where the marker file is created.
+docker_swarm_volume_fs_root: /mnt/mydocker-fs
 docker_swarm_port: 2377
 docker_swarm_seccomp_folder: /opt/docker-seccomp
 docker_swarm_seccomp_override: false

@@ -57,6 +57,30 @@
   changed_when: output_timeout_disable.rc == 0
   failed_when: false
 
+# The marker must exist before the guard is armed, or the next Create fails on a
+# marker that was never created. Touched on the host path bound in as the plugin
+# root, so an unmounted store means an absent marker, which is the whole point.
+- name: Create the FS backing-store marker
+  ansible.builtin.file:
+    path: "{{ docker_swarm_volume_fs_root }}/{{ docker_swarm_volume_fs_ready_marker }}"
+    state: touch
+    mode: '0644'
+    modification_time: preserve
+    access_time: preserve
+  when: docker_swarm_volume_fs_ready_marker | length > 0
+
+# Set inside the same disabled window as the enable-timeout tasks: `docker plugin set`
+# refuses to run against an enabled plugin, and in steady state it is enabled.
+- name: Arm the FS backing-store guard
+  ansible.builtin.command: >-
+    docker plugin set centralesupelec/mydockervolume
+    "FS_READY_MARKER={{ docker_swarm_volume_fs_ready_marker }}"
+  when:
+    - docker_swarm_volume_fs_ready_marker | length > 0
+    - output.changed or docker_swarm_volume_upgrade_internal or (docker_swarm_volume_force_enable_timeout | bool)
+  register: output_marker
+  changed_when: output_marker.rc == 0
+
 - name: Enable centralesupelec/mydockervolume plugin with an explicit timeout
   ansible.builtin.command: >-
     docker plugin enable --timeout {{ docker_swarm_volume_enable_timeout }}
