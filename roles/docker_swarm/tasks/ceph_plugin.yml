@@ -2,7 +2,9 @@
   ansible.builtin.command: "docker plugin inspect centralesupelec/mydockervolume -f '{{ '{{' }}.PluginReference{{ '}}' }}'"
   register: plugin_inspect
   changed_when: false
-  ignore_errors: true
+  # failed_when, not ignore_errors: see local_volume_plugin.yml. A missing plugin is the
+  # expected probe result on a fresh host, not an error worth a red block.
+  failed_when: false
 
 - name: Define if should upgrade plugin
   changed_when: false

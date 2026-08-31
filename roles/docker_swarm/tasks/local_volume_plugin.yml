@@ -2,7 +2,11 @@
   ansible.builtin.command: "docker plugin inspect centralesupelec/mydockervolume -f '{{ '{{' }}.PluginReference{{ '}}' }}'"
   register: plugin_inspect
   changed_when: false
-  ignore_errors: true
+  # failed_when, not ignore_errors: this is a probe whose non-zero rc is the expected
+  # answer on a host without the plugin, and it drives the install task below.
+  # ignore_errors renders that normal case as a red "fatal ... ignoring" block, so a
+  # clean first install looks like something went wrong.
+  failed_when: false
 
 - name: Define if should upgrade plugin
   changed_when: false
