@@ -39,6 +39,12 @@
     - VOLUME_ORDER=22
     - SHELL_TIMEOUT_SECONDS=7
     - SHELL_RETRIES=3
+    # A host carrying a blank RBD_CONF_DEVICE_MAP_ROOT overrides the driver's
+    # /dev/rbd default with an empty string, and both create and mount then
+    # resolve to the relative path <pool>/<image> instead of a device node.
+    # That took the production worker out for four days (2026-08-31) in
+    # silence. Declare the value so it does not depend on host state.
+    - RBD_CONF_DEVICE_MAP_ROOT=/dev/rbd
   when: docker_swarm_volume_upgrade_internal
 
 - name: Install docker centralesupelec/mydockervolume plugin
@@ -47,6 +53,7 @@
     --alias=centralesupelec/mydockervolume
     LOG_LEVEL=warning DRIVER_MODE=RBD
     RBD_CONF_POOL=mydocker-{{ env }} RBD_CONF_CLUSTER=ceph RBD_CONF_KEYRING_USER=client.{{ ceph_user }}
+    RBD_CONF_DEVICE_MAP_ROOT=/dev/rbd
     VOLUME_FSTYPE=ext4 "VOLUME_MKFS_OPTIONS=-O mmp" VOLUME_SIZE=512 VOLUME_ORDER=22
     SHELL_TIMEOUT_SECONDS=7 SHELL_RETRIES=3
     --grant-all-permissions
