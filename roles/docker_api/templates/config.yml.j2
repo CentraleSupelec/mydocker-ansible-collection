@@ -54,3 +54,8 @@ CaddyTlsKeyPath: {{ caddy_key_file_target_path }}
 CaddyStreamCloseDelay: {{ caddy_stream_close_delay }}
 StudentVolumeSize: {{ student_volume_size }}
 Monolithic: {{ monolithic | to_json }}
+VolumeMounts:
+{% for volume_mount in volume_mounts %}
+  - Source: "{{ volume_mount.source }}"
+    Target: "{{ volume_mount.target }}"
+{% endfor %}
