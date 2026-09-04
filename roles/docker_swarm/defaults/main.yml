@@ -61,3 +61,10 @@ aristote_dispatcher_url: ~
 aristote_dispatcher_token: ~
 aristote_dispatcher_alias: ~
 caddy_docker_proxy_image: "lucaslorentz/caddy-docker-proxy:2.9.2-alpine"
+
+# On-the-fly environments API: writes into the volume that every student
+# environment mounts read-only via the docker_api role's volume_mounts.
+# Leave the image unset to skip creating the service entirely.
+on_the_fly_environments_image: ~
+on_the_fly_environments_source: shared
+on_the_fly_environments_target: /cache
