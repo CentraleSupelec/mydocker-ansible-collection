@@ -2,6 +2,8 @@
 cas_base_url: https://cas.cloud.centralesupelec.fr/cas
 web_debug_grpc: "false"
 web_extra_application_properties: ~
+# gRPC inbound message limit for responses from the Go API, in bytes. 16 MiB.
+web_go_max_inbound_message_size: 16777216
 web_jvm_dir: '/usr/lib/jvm'
 web_pg_database: thuv
 web_pg_username: "{{ web_pg_database }}"

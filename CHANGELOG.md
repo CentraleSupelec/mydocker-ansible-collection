@@ -10,6 +10,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 - Remove tainted servers that have been stuck for too long
 - Pass `--timeout` when enabling the mydockervolume plugin, on both the rbd and fs backends, with `docker_swarm_volume_enable_timeout` (default 120) and `docker_swarm_volume_force_enable_timeout` to apply it to already-installed hosts
 - Volume mounts
+- `go.app.max-inbound-message-size` in the back end configuration, `web_go_max_inbound_message_size`, default 16 MiB. The back end reads this property with no fallback, and the unit starts it with `--spring.config.location`, which replaces the packaged properties, so the service does not start unless the template carries the key
 
 ## 0.31.0
 ### Added
