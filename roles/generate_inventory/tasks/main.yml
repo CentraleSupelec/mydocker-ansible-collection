@@ -1,4 +1,50 @@
 ---
+# The inventory below is keyed on the OpenStack instance name, and Ansible silently keeps only the
+# last definition of a repeated host name. Two instances sharing a name therefore become one
+# inventory host: the other one is never configured, never joins the swarm, and the labels on its
+# dropped line are lost with it. That is not recoverable later in the run, so refuse to template an
+# inventory that would lose hosts rather than report success over a half-configured cluster.
+# The population has to be the one hosts.j2 itself iterates, instance for instance: an instance with
+# no address or a tainted one is not templated, so counting it here would abort a deployment that
+# drops nothing. A tainted instance keeps the name of the instance it replaces, which is exactly the
+# case that would otherwise false-positive. The eligibility condition below and the one in the three
+# loops of hosts.j2 are the same contract expressed twice, so a change to either has to be made to
+# both until the template is rendered from a single filtered fact.
+- name: Collect the addressed instances
+  ansible.builtin.set_fact:
+    generate_inventory_addressed_instances: >-
+      {{ terraform_state.resources
+         | selectattr('type', 'equalto', 'openstack_compute_instance_v2')
+         | map(attribute='instances') | flatten
+         | selectattr('attributes.access_ip_v4', 'defined')
+         | selectattr('attributes.access_ip_v4')
+         | list }}
+  delegate_to: localhost
+
+- name: Collect the instance names that belong in the inventory
+  ansible.builtin.set_fact:
+    generate_inventory_instance_names: >-
+      {{ (
+           (generate_inventory_addressed_instances | selectattr('status', 'undefined') | list)
+           +
+           (generate_inventory_addressed_instances | selectattr('status', 'defined')
+              | rejectattr('status', 'equalto', 'tainted') | list)
+         ) | map(attribute='attributes.name') | list }}
+  delegate_to: localhost
+
+- name: Fail when two instances would collapse into one inventory host
+  ansible.builtin.assert:
+    that:
+      - generate_inventory_instance_names | length == generate_inventory_instance_names | unique | length
+    fail_msg: >-
+      Duplicate instance names in the terraform state: the inventory would drop
+      {{ generate_inventory_instance_names | length - (generate_inventory_instance_names | unique | length) }}
+      of {{ generate_inventory_instance_names | length }} hosts, which would leave those servers
+      running and unconfigured. Names seen: {{ generate_inventory_instance_names | sort }}
+    success_msg: >-
+      {{ generate_inventory_instance_names | length }} instances, all distinctly named
+  delegate_to: localhost
+
 - name: Template inventory
   ansible.builtin.template:
     src: hosts.j2
