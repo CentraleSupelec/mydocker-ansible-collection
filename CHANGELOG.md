@@ -12,6 +12,9 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 - Volume mounts
 - `go.app.max-inbound-message-size` in the back end configuration, `web_go_max_inbound_message_size`, default 16 MiB. The back end reads this property with no fallback, and the unit starts it with `--spring.config.location`, which replaces the packaged properties, so the service does not start unless the template carries the key
 
+### Fixed
+- `generate_inventory` now fails instead of templating an inventory in which two instances share a name. Ansible keeps only the last definition of a repeated host name, so such a pair became one host and the other server was left running and unconfigured, with the labels from its dropped line lost
+
 ## 0.31.0
 ### Added
 - Load test user credentials
