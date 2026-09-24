@@ -1,0 +1,44 @@
+name: Release
+
+# Final tags only: GitHub filter patterns match the whole tag name, so
+# 0.34.0-dev9 does not trigger this. Dev tags stay plain git tags;
+# requirements.yml installs from the tag, not from the release.
+on:
+  push:
+    tags: ['[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # Only a 404 means "no release yet"; any other failure stops here.
+          if out=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" 2>&1); then
+            echo "Release $TAG already exists, nothing to do"
+            exit 0
+          elif [[ "$out" != *"(HTTP 404)"* ]]; then
+            echo "$out" >&2
+            exit 1
+          fi
+
+          finals=$(git tag --list | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V)
+          # Notes start at the previous final tag, never at a dev pre-release.
+          prev=$(echo "$finals" | grep -B1 -x "$TAG" | head -n1)
+          # A patch tagged on an older line must not become Latest.
+          latest=false
+          [ "$(echo "$finals" | tail -n1)" = "$TAG" ] && latest=true
+
+          args=(--verify-tag --title "$TAG" --generate-notes --latest="$latest")
+          [ -n "$prev" ] && [ "$prev" != "$TAG" ] && args+=(--notes-start-tag "$prev")
+          gh release create "$TAG" "${args[@]}"
