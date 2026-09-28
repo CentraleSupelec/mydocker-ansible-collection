@@ -18,6 +18,9 @@
       caddy_controlled_server:
       caddy_0: "(default_response)"
       caddy_0.respond: "410"
+      # Unset, browsers cache this 410 and replay it on every later visit, even once the
+      # environment's route exists: hostnames are opened before the proxy has converged.
+      caddy_0.header: "Cache-Control no-store"
       caddy_1: "http://"
       caddy_1.import: "default_response"
       caddy_2: "https://"

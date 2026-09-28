@@ -15,6 +15,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 
 ### Fixed
 - `generate_inventory` now fails instead of templating an inventory in which two instances share a name. Ansible keeps only the last definition of a repeated host name, so such a pair became one host and the other server was left running and unconfigured, with the labels from its dropped line lost
+- The reverse proxy's 410 for unknown hostnames now carries `Cache-Control: no-store`. Browsers cached it, so a student who opened an environment a moment before its route existed kept getting the 410 on every later click until a hard reload
 
 ## 0.31.0
 ### Added
