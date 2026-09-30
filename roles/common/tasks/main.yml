@@ -22,6 +22,7 @@
       - /usr/sbin/policy-rc.d
   register: common_policy_rc_d_marker
   changed_when: false
+  check_mode: false
   failed_when: common_policy_rc_d_marker.rc > 1
   when: common_policy_rc_d.stat.exists
   become: true

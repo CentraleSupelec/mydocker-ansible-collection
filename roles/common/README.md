@@ -32,11 +32,16 @@ Docker and containerd packages still upgrade with the rest of the host, but the
 upgrade never restarts them, so running containers survive. This covers
 `apt upgrade`, unattended-upgrades and `needrestart`. The role installs
 `/usr/sbin/policy-rc.d` (denies docker and containerd service actions) and a
-`/etc/needrestart/conf.d/docker.conf` drop-in (non-interactive, skips docker,
-containerd and thuv-docker). Both stay in place permanently.
+`/etc/needrestart/conf.d/docker.conf` drop-in (skips docker, containerd and
+thuv-docker). Both stay in place permanently.
 
 A pending upgrade takes effect at the next host reboot, or by running
-`systemctl restart docker` in a maintenance window.
+`systemctl restart containerd docker` in a maintenance window. Restarting
+`docker` alone leaves the old containerd running.
+
+A package install is denied too: Docker installed after this role stays stopped
+until something starts it through systemd (the `nickjj.docker` handler does) or
+the host reboots.
 
 If a `/usr/sbin/policy-rc.d` not written by this role already exists, the run
 fails instead of overwriting it.
