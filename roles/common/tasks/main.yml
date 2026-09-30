@@ -5,6 +5,78 @@
     dest: '/etc/apt/listchanges.conf'
   become: true
 
+- name: Check for an existing policy-rc.d
+  ansible.builtin.stat:
+    path: /usr/sbin/policy-rc.d
+  register: common_policy_rc_d
+  tags:
+    - install
+    - update
+
+- name: Check whether the existing policy-rc.d is managed by this role
+  ansible.builtin.command:
+    argv:
+      - grep
+      - -qF
+      - 'Managed by centralesupelec.mydocker.common: defer docker restart'
+      - /usr/sbin/policy-rc.d
+  register: common_policy_rc_d_marker
+  changed_when: false
+  failed_when: common_policy_rc_d_marker.rc > 1
+  when: common_policy_rc_d.stat.exists
+  become: true
+  tags:
+    - install
+    - update
+
+- name: Refuse to overwrite a foreign policy-rc.d
+  ansible.builtin.fail:
+    msg: >-
+      /usr/sbin/policy-rc.d already exists and is not managed by this role.
+      Review it and merge the docker and containerd rules by hand, or remove it, then run again.
+  when:
+    - common_policy_rc_d.stat.exists
+    - common_policy_rc_d_marker.rc != 0
+  tags:
+    - install
+    - update
+
+- name: Install policy-rc.d to defer docker and containerd restarts
+  ansible.builtin.copy:
+    src: policy-rc.d
+    dest: /usr/sbin/policy-rc.d
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  tags:
+    - install
+    - update
+
+- name: Create needrestart configuration directory
+  ansible.builtin.file:
+    path: /etc/needrestart/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  tags:
+    - install
+    - update
+
+- name: Install needrestart docker drop-in
+  ansible.builtin.copy:
+    src: needrestart-docker.conf
+    dest: /etc/needrestart/conf.d/docker.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+  tags:
+    - install
+    - update
+
 - name: Update and upgrade apt packages
   become: true
   ansible.builtin.apt:

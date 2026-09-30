@@ -14,6 +14,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 - `go.app.max-inbound-message-size` in the back end configuration, `web_go_max_inbound_message_size`, default 16 MiB. The back end reads this property with no fallback, and the unit starts it with `--spring.config.location`, which replaces the packaged properties, so the service does not start unless the template carries the key
 
 ### Fixed
+- `common` no longer restarts `docker` or `containerd` when apt upgrades them, so running containers survive. A permanent `policy-rc.d` and a needrestart drop-in defer the restart to the next reboot, and the run fails if a foreign `policy-rc.d` exists
 - `generate_inventory` now fails instead of templating an inventory in which two instances share a name. Ansible keeps only the last definition of a repeated host name, so such a pair became one host and the other server was left running and unconfigured, with the labels from its dropped line lost
 - The reverse proxy's 410 for unknown hostnames now carries `Cache-Control: no-store`. Browsers cached it, so a student who opened an environment a moment before its route existed kept getting the 410 on every later click until a hard reload
 

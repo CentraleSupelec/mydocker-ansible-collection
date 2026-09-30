@@ -26,6 +26,21 @@ common_ssh_authorized_keys:
     - ssh-rsa ...
 ```
 
+## Docker upgrades are deferred
+
+Docker and containerd packages still upgrade with the rest of the host, but the
+upgrade never restarts them, so running containers survive. This covers
+`apt upgrade`, unattended-upgrades and `needrestart`. The role installs
+`/usr/sbin/policy-rc.d` (denies docker and containerd service actions) and a
+`/etc/needrestart/conf.d/docker.conf` drop-in (non-interactive, skips docker,
+containerd and thuv-docker). Both stay in place permanently.
+
+A pending upgrade takes effect at the next host reboot, or by running
+`systemctl restart docker` in a maintenance window.
+
+If a `/usr/sbin/policy-rc.d` not written by this role already exists, the run
+fails instead of overwriting it.
+
 ## Dependencies
 
 None.
