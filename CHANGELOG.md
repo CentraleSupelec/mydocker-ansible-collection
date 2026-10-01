@@ -4,19 +4,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
-### Added
-- On-the-fly environments API service, created only when `on_the_fly_environments_image` is set
-- Polling interval variables for front / back to poll active courses
-- Remove tainted servers that have been stuck for too long
-- Pass `--timeout` when enabling the mydockervolume plugin, on both the rbd and fs backends, with `docker_swarm_volume_enable_timeout` (default 120) and `docker_swarm_volume_force_enable_timeout` to apply it to already-installed hosts
-- Volume mounts
-- `go.app.max-inbound-message-size` in the back end configuration, `web_go_max_inbound_message_size`, default 16 MiB. The back end reads this property with no fallback, and the unit starts it with `--spring.config.location`, which replaces the packaged properties, so the service does not start unless the template carries the key
-
+## 0.37.0
 ### Fixed
 - `common` no longer restarts `docker` or `containerd` when apt upgrades them, so running containers survive. A permanent `policy-rc.d` and a needrestart drop-in defer the restart to the next reboot, and the run fails if a foreign `policy-rc.d` exists
-- `generate_inventory` now fails instead of templating an inventory in which two instances share a name. Ansible keeps only the last definition of a repeated host name, so such a pair became one host and the other server was left running and unconfigured, with the labels from its dropped line lost
 - The reverse proxy's 410 for unknown hostnames now carries `Cache-Control: no-store`. Browsers cached it, so a student who opened an environment a moment before its route existed kept getting the 410 on every later click until a hard reload
+
+## 0.36.0
+### Added
+- On-the-fly environments API service, created only when `on_the_fly_environments_image` is set
+
+### Fixed
+- `generate_inventory` now fails instead of templating an inventory in which two instances share a name. Ansible keeps only the last definition of a repeated host name, so such a pair became one host and the other server was left running and unconfigured, with the labels from its dropped line lost
+
+## 0.35.1
+### Added
+- `go.app.max-inbound-message-size` in the back end configuration, `web_go_max_inbound_message_size`, default 16 MiB. The back end reads this property with no fallback, and the unit starts it with `--spring.config.location`, which replaces the packaged properties, so the service does not start unless the template carries the key
+
+## 0.35.0
+### Added
+- Volume mounts
+
+## 0.34.0
+### Added
+- Pass `--timeout` when enabling the mydockervolume plugin, on both the rbd and fs backends, with `docker_swarm_volume_enable_timeout` (default 120) and `docker_swarm_volume_force_enable_timeout` to apply it to already-installed hosts
+
+## 0.33.0
+### Added
+- Remove tainted servers that have been stuck for too long
+
+## 0.32.0
+### Added
+- Polling interval variables for front / back to poll active courses
 
 ## 0.31.0
 ### Added
