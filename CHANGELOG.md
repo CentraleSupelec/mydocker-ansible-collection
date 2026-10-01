@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- `web` checks, before the back is restarted, that the back's JVM trusts the certificate Caddy serves for environment hostnames, one probe per `reverse_proxy_url` of the Swarm managers. An untrusted certificate fails the run: otherwise no web environment ever reads as ready. An unreachable proxy only warns. Skipped when `test_connection_disable_ssl_validation` is true, and by `--skip-tags jvm_trust_probe`
+
 ## 0.37.0
 ### Fixed
 - `common` no longer restarts `docker` or `containerd` when apt upgrades them, so running containers survive. A permanent `policy-rc.d` and a needrestart drop-in defer the restart to the next reboot, and the run fails if a foreign `policy-rc.d` exists
