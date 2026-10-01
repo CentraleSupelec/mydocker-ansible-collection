@@ -12,7 +12,7 @@ None.
 ## Role Variables
 
 * (default `2377`) `docker_swarm_port`: the port for the advertise address of the swarm
-* (default `false`) `docker_swarm_seccomp_override`: whether to override seccomp configuration
+* (default `false`) `docker_swarm_seccomp_override`: whether to override seccomp configuration. The profile is set in the drop-in `/etc/systemd/system/docker.service.d/zz-mydocker-seccomp.conf`, so a Docker upgrade keeps it. The role never restarts Docker: a new or changed profile takes effect at the next start of Docker, normally the next reboot. Turning the override off later does not remove the drop-in
 * (default `/opt/docker-seccomp`) `docker_swarm_seccomp_folder`: folder on which to store seccomp configuration
 * (default `rbd`) `docker_swarm_volume_backend` : storage backend to use, either `rbd` for Ceph, or `fs` for filesystem
 * (default `centralesupelec/mydockervolume:latest`) `docker_swarm_volume_plugin` : volume plugin to use

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Fixed
+- With `docker_swarm_seccomp_override`, the seccomp profile now lives in a systemd drop-in instead of an edit of the packaged `docker.service`, so a Docker upgrade no longer drops it. The role no longer restarts Docker for it: a new or changed profile takes effect at the next start of Docker, normally the next reboot
+
 ## 0.37.0
 ### Fixed
 - `common` no longer restarts `docker` or `containerd` when apt upgrades them, so running containers survive. A permanent `policy-rc.d` and a needrestart drop-in defer the restart to the next reboot, and the run fails if a foreign `policy-rc.d` exists
