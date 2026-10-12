@@ -40,6 +40,8 @@ deployment_enabled: true
 terraform_state_url: "https://path.com/to/state.tf"
 go_address: "{{ (inventory_hostname == groups['docker_swarm_manager'][0]) | ternary('127.0.0.1',  hostvars[groups['docker_swarm_manager'][0]]['ansible_host']) }}"
 default_storage_backend: RBD # One of RBD, NFS, LOCAL
+# Address the front shows when a CAS or OIDC sign-in fails. Null shows the message without one.
+support_email: null
 # SaveData stopgap is explicit opt-in. Default remains OFF across deployments until an operator
 # deliberately sets save_student_work_enabled: true in inventory.
 save_student_work_enabled: false
