@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- `web` checks, before the back is restarted, that the back's JVM trusts the certificate Caddy serves for environment hostnames, one probe per `reverse_proxy_url` of the Swarm managers. An untrusted certificate fails the run: otherwise no web environment ever reads as ready. An unreachable proxy only warns. Skipped when `test_connection_disable_ssl_validation` is true, and by `--skip-tags jvm_trust_probe`
+
 ### Fixed
 - With `docker_swarm_seccomp_override`, the seccomp profile now lives in a systemd drop-in instead of an edit of the packaged `docker.service`, so a Docker upgrade no longer drops it. The role no longer restarts Docker for it: a new or changed profile takes effect at the next start of Docker, normally the next reboot
 
