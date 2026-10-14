@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.37.1
+### Added
+- `web` passes `support_email` to the front configuration, the address the front shows when a CAS or OIDC sign-in fails. Defaults to null, which shows the message without an address
+- `web` checks, before the back is restarted, that the back's JVM trusts the certificate Caddy serves for environment hostnames, one probe per `reverse_proxy_url` of the Swarm managers. An untrusted certificate fails the run: otherwise no web environment ever reads as ready. An unreachable proxy only warns. Skipped when `test_connection_disable_ssl_validation` is true, and by `--skip-tags jvm_trust_probe`
+
+### Fixed
+- With `docker_swarm_seccomp_override`, the seccomp profile now lives in a systemd drop-in instead of an edit of the packaged `docker.service`, so a Docker upgrade no longer drops it. The role no longer restarts Docker for it: a new or changed profile takes effect at the next start of Docker, normally the next reboot
+
 ## 0.37.0
 ### Fixed
 - `common` no longer restarts `docker` or `containerd` when apt upgrades them, so running containers survive. A permanent `policy-rc.d` and a needrestart drop-in defer the restart to the next reboot, and the run fails if a foreign `policy-rc.d` exists
