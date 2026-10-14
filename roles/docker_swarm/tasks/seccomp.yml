@@ -14,18 +14,53 @@
     mode: u+rw,g+r,o-rwx
   when: docker_swarm_seccomp_override
 
-- name: Enable seccomp profile
-  ansible.builtin.replace:
-    backup: true
-    dest: /lib/systemd/system/docker.service
-    regexp: '^(ExecStart=\/usr\/bin\/dockerd -H fd:\/\/(?!.*--seccomp-profile {{ docker_swarm_seccomp_folder }}\/seccomp.json\b).*)$'
-    replace: '\1 --seccomp-profile {{ docker_swarm_seccomp_folder }}/seccomp.json'
-  register: enable_seccomp_profile
+# The profile goes in a drop-in, not in the packaged unit, so a docker-ce
+# upgrade cannot remove it. The drop-in restates the command line systemd
+# currently runs (other drop-ins included), minus any earlier
+# --seccomp-profile, so the flag appears once. Docker is never restarted
+# here: the profile takes effect at the next start of Docker, normally the
+# next reboot.
+# The systemd module cannot read a unit property without changing state.
+- name: Read the effective dockerd command line  # noqa: command-instead-of-module
+  ansible.builtin.command: systemctl show docker --property ExecStart --value
+  register: docker_swarm_seccomp_execstart
+  changed_when: false
+  check_mode: false
   when: docker_swarm_seccomp_override
 
-- name: Restart docker service on change
+- name: Check the dockerd command line was found
+  ansible.builtin.assert:
+    that: "'argv[]=' in docker_swarm_seccomp_execstart.stdout"
+    fail_msg: "No ExecStart for docker in systemd: {{ docker_swarm_seccomp_execstart.stdout }}"
+  when: docker_swarm_seccomp_override
+
+- name: Create docker drop-in folder
+  ansible.builtin.file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    mode: "0755"
+  when: docker_swarm_seccomp_override
+
+- name: Enable seccomp profile in a docker drop-in
+  vars:
+    docker_swarm_seccomp_dockerd: >-
+      {{ docker_swarm_seccomp_execstart.stdout
+         | regex_search('argv[[][]]=[^;]+')
+         | regex_replace('^argv[[][]]=', '') | trim
+         | regex_replace(' +--seccomp-profile(=| +)[^ ]+', '') }}
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/docker.service.d/zz-mydocker-seccomp.conf
+    content: |
+      # Managed by Ansible, role docker_swarm. Applies at the next start of Docker.
+      [Service]
+      ExecStart=
+      ExecStart={{ docker_swarm_seccomp_dockerd }} --seccomp-profile {{ docker_swarm_seccomp_folder }}/seccomp.json
+    mode: "0644"
+  register: docker_swarm_seccomp_dropin
+  when: docker_swarm_seccomp_override
+
+# Inline, not a handler: the reload must not wait for the end of the play.
+- name: Reload systemd units without restarting docker  # noqa: no-handler
   ansible.builtin.systemd:
-    state: restarted
     daemon_reload: true
-    name: docker
-  when: enable_seccomp_profile.changed
+  when: docker_swarm_seccomp_dropin.changed

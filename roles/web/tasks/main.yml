@@ -50,6 +50,44 @@
   when: not openjdk_directory.stat.exists
   loop: "{{ certificates_list.files }}"
 
+- name: Copy JVM trust probe
+  ansible.builtin.copy:
+    src: TrustProbe.java
+    dest: /opt/TrustProbe.java
+    mode: u=rw,g=r,o=r
+  become: true
+  when: not test_connection_disable_ssl_validation
+  tags: jvm_trust_probe
+
+# The back checks that an environment is ready over HTTPS, with this JVM's
+# default trust store. A name under each reverse proxy domain gets the
+# environments' certificate from Caddy (and a 410, as it has no route), so
+# only the TLS handshake decides. Runs before the back is (re)started, so an
+# untrusted certificate stops the run before anything changes. An unreachable
+# proxy only warns: reachability is not what this checks.
+- name: Check that the back's JVM trusts the environments' certificate
+  ansible.builtin.command:
+    argv:
+      - "{{ web_jvm_dir }}/openjdk17/bin/java"
+      - /opt/TrustProbe.java
+      - "https://mydocker-trust-probe.{{ item }}"
+  loop: "{{ web_jvm_trust_probe_domains }}"
+  register: web_jvm_trust_probe
+  changed_when: false
+  failed_when: web_jvm_trust_probe.rc not in [0, 3]
+  check_mode: false
+  when: not test_connection_disable_ssl_validation
+  tags: jvm_trust_probe
+
+- name: Warn when the trust check could not reach a reverse proxy
+  ansible.builtin.debug:
+    msg: "JVM trust not checked: {{ item.stdout }}"
+  loop: "{{ web_jvm_trust_probe.results | default([]) | selectattr('rc', 'defined') | selectattr('rc', 'eq', 3) }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: not test_connection_disable_ssl_validation
+  tags: jvm_trust_probe
+
 - name: Check if sentry-cli is installed
   ansible.builtin.shell: "command -v sentry-cli >/dev/null 2>&1"
   register: is_sentry_cli_installed
