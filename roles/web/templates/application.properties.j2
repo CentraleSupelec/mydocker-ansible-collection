@@ -21,6 +21,12 @@ spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.PostgreSQLDialec
 # Hibernate ddl auto (create, create-drop, validate, update)
 spring.jpa.hibernate.ddl-auto = validate
 spring.liquibase.change-log=classpath:dbschema/master.xml
+# Upgrade from one Go API to clusters: the back end seeds a "default" cluster from these once.
+# All four must be present, empty when unknown, or the back end changelog does not run.
+spring.liquibase.parameters.defaultClusterGoAddress={{ web_default_cluster_go_address }}
+spring.liquibase.parameters.defaultClusterGoPort=50000
+spring.liquibase.parameters.defaultClusterTerraformStateUrl={{ web_default_cluster_terraform_state_url }}
+spring.liquibase.parameters.defaultClusterDeploymentEnabled={{ deployment_enabled | to_json }}
 
 ## Go API Configuration
 go.debug = {{ web_debug_grpc }}
