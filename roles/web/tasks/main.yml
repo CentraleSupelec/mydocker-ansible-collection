@@ -98,12 +98,12 @@
     url: https://sentry.io/get-cli/
     dest: /tmp/sentry-cli-installer.sh
     mode: u=rwx,g=rx,o=rx
-  when: is_sentry_cli_installed.rc
+  when: is_sentry_cli_installed.rc != 0
 
 - name: Install sentry-cli
   ansible.builtin.command: "/tmp/sentry-cli-installer.sh"
   become: true
-  when: is_sentry_cli_installed.rc
+  when: is_sentry_cli_installed.rc != 0
 
 - name: Install datadog javaagent
   ansible.builtin.get_url:
