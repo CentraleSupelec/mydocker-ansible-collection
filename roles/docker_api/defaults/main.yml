@@ -44,3 +44,16 @@ monolithic: false
 volume_mounts: []
   # - source: ""
   #   target: ""
+grpc_server_cert: "{{ undef(hint='grpc_server_cert must be defined') }}"
+grpc_server_key: "{{ undef(hint='grpc_server_key must be defined') }}"
+grpc_ca: "{{ undef(hint='grpc_ca must be defined') }}"
+create_acl_ceph: true
+rclone_s3_type:
+rclone_s3_provider:
+rclone_s3_access_key_id:
+rclone_s3_secret_access_key:
+rclone_s3_region:
+rclone_s3_endpoint:
+terraform_aws_s3_endpoint:
+terraform_region:
+hosts_file_path:

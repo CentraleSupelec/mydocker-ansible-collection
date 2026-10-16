@@ -4,6 +4,10 @@ web_debug_grpc: "false"
 web_extra_application_properties: ~
 # gRPC inbound message limit for responses from the Go API, in bytes. 16 MiB.
 web_go_max_inbound_message_size: 16777216
+# Upgrade to clusters only: the Go API and state URL a single-Go platform used, seeded once as
+# the "default" cluster. Same values as before clusters; ignored once a cluster exists.
+web_default_cluster_go_address: "{{ (inventory_hostname == groups['docker_swarm_manager'][0]) | ternary('127.0.0.1',  hostvars[groups['docker_swarm_manager'][0]]['ansible_host']) }}"
+web_default_cluster_terraform_state_url: ""
 web_jvm_dir: '/usr/lib/jvm'
 web_pg_database: thuv
 web_pg_username: "{{ web_pg_database }}"
@@ -20,6 +24,9 @@ web_back_config_location: /etc/spring-configuration/
 web_back_environment: production
 web_back_private_key:
 web_back_public_key:
+web_back_tls_client_key:
+web_back_tls_client_certificate:
+web_back_tls_ca:
 web_back_port: 8080
 web_contexts_save: /opt/contexts/
 web_front_location: /var/www/front
@@ -37,8 +44,6 @@ smtp_from: "mydocker@example.com"
 smtp_to: []
 web_deployment_delay_in_milliseconds: 300000
 deployment_enabled: true
-terraform_state_url: "https://path.com/to/state.tf"
-go_address: "{{ (inventory_hostname == groups['docker_swarm_manager'][0]) | ternary('127.0.0.1',  hostvars[groups['docker_swarm_manager'][0]]['ansible_host']) }}"
 default_storage_backend: RBD # One of RBD, NFS, LOCAL
 # Address the front shows when a CAS or OIDC sign-in fails. Null shows the message without one.
 support_email: null

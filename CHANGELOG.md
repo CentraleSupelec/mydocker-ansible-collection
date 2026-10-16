@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.38.0
+### Added
+- Handle multiple go instances
+### Fixed
+- The sentry-cli check compares its return code explicitly, so the `web` play passes on ansible-core 2.19 and later
+
 ## 0.37.1
 ### Added
 - `web` passes `support_email` to the front configuration, the address the front shows when a CAS or OIDC sign-in fails. Defaults to null, which shows the message without an address

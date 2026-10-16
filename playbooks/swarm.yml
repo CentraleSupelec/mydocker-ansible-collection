@@ -1,3 +1,13 @@
+- name: Add Terraform instances as hosts
+  hosts: localhost
+  roles:
+    - role: centralesupelec.mydocker.retrieve_state
+      when: retrieve_state_source is defined
+    - role: centralesupelec.mydocker.add_hosts
+      vars:
+        terraform_state: "{{ retrieve_state_result }}"
+      when: retrieve_state_source is defined
+
 - name: Update apt
   hosts: docker_swarm_manager:docker_swarm_worker
   become: true
