@@ -13,11 +13,26 @@ enable_ceph: false
 
 ### Before
 
-- If you want to use NFS for the persisted storage, configure it on the server :
-```shell
-sudo mkdir -p /mnt/mydocker-fs
-sudo mount -t nfs ip.of.the.server:/path/to/mydocker-fs /mnt/mydocker-fs
+- If you want to use NFS for the persisted storage, let the `docker_swarm` role mount it on the
+  swarm hosts (plugin `centralesupelec/mydockervolume` v1.4.0 or later, which reads the ready
+  marker). The export must allow the swarm hosts with `rw,no_root_squash`:
+```yaml
+docker_swarm_volume_backend: fs
+docker_swarm_volume_plugin: centralesupelec/mydockervolume:v1.4.0
+docker_swarm_volume_fs_nfs_source: ip.of.the.server:/path/to/mydocker-fs
+docker_swarm_volume_fs_ready_marker: .mydocker-ready
 ```
+  The role writes the fstab entry (`rw,sync,hard`), starts Docker after remote file systems and
+  creates the marker on the export only. When the root was not mounted before the run, it
+  restarts Docker so the plugin binds the export: running containers on that node stop. A root
+  that is already mounted from the same export is adopted without a restart. The run stops
+  instead of guessing when the root is mounted from another source, when the local directory
+  under it holds data, when the plugin serves something other than the export, or when an
+  already installed plugin is not armed with the marker (re-run with
+  `-e docker_swarm_volume_force_enable_timeout=true` in a maintenance window).
+- A node that boots while NFS is unreachable still starts Docker, and the plugin refuses volumes.
+  Once NFS is back: `sudo mount /mnt/mydocker-fs && sudo systemctl restart docker` on that node,
+  or re-run the play with `--tags docker_install_plugin`.
 
 - Make sure that there is a DNS pointing to your server.
 - Generate public and private RSA key pair
