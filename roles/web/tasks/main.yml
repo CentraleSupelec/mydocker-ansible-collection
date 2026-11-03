@@ -6,6 +6,7 @@
       - postgresql
       - python3-psycopg2
       - letsencrypt
+      - unzip
     autoclean: true
     update_cache: true
     state: present
