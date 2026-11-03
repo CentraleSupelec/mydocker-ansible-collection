@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- `docker_swarm` mounts the NFS export of the FS backend when `docker_swarm_volume_fs_nfs_source` is set: fstab entry, Docker ordered after remote file systems, ready marker mandatory and created on the export only. Docker is restarted only when the root was not mounted before the run, so adopting an existing mount or rewriting its fstab line keeps running labs. The run stops, instead of hiding or moving data, when the root is mounted from another source, when local data sits under the mount point, when the plugin serves something other than the export, or when the plugin is not armed with the configured marker
+### Fixed
+- `docker_swarm` defaults `manager` to the first `docker_swarm_manager` host, so a static inventory no longer fails at swarm join (only the Terraform `add_hosts` path set it)
+- `docker_swarm` reads `docker_swarm_volume_upgrade` and `docker_swarm_volume_force_enable_timeout` as booleans, so `-e ...=false` no longer upgrades or force-disables the plugin
+- `docker_swarm` stops, with the plugin enabled again, when a marker is configured but the plugin just installed or upgraded declares no `FS_READY_MARKER`, instead of leaving it disabled. Tags too old for `SHELL_TIMEOUT_SECONDS` (v1.3.0) are still refused earlier by the install or seed task, and Docker leaves such a plugin installed and disabled until a run with a supported pin and `docker_swarm_volume_upgrade: true` upgrades it
+- `docker_swarm` creates the FS root with the configured `docker_swarm_volume_fs_root` instead of a hardcoded `/mnt/mydocker-fs`, and leaves it alone when it is an NFS mount
+
 ## 0.38.0
 ### Added
 - Handle multiple go instances

@@ -1,0 +1,32 @@
+---
+# Imported twice by nfs_mount.yml: once with Docker running (a refusal costs nothing), once
+# inside the stop window right before the mount (nothing written in between).
+
+- name: List what is under the mount point
+  ansible.builtin.find:
+    paths: "{{ docker_swarm_volume_fs_root }}"
+    file_type: any
+    hidden: true
+    excludes: [lost+found]
+  register: docker_swarm_nfs_underlay
+
+- name: Refuse a root that could not be read in full
+  ansible.builtin.assert:
+    that:
+      - docker_swarm_nfs_root.stat.isdir
+      - docker_swarm_nfs_underlay.skipped_paths | default({}) | length == 0
+    fail_msg: >-
+      {{ docker_swarm_volume_fs_root }} on {{ inventory_hostname }} is not a readable directory
+      ({{ docker_swarm_nfs_underlay.skipped_paths | default({}) }}); check it before running the role.
+    quiet: true
+
+# Anything but a lone regular marker file, including a directory or link of the same name.
+- name: Refuse to hide local data under the export
+  ansible.builtin.assert:
+    that:
+      - docker_swarm_nfs_underlay.files | length == 0 or docker_swarm_nfs_lone_marker | bool
+    fail_msg: >-
+      {{ docker_swarm_volume_fs_root }} on {{ inventory_hostname }} holds local data
+      ({{ docker_swarm_nfs_underlay.files | map(attribute='path') | map('basename') | list | sort | join(', ') | truncate(200) }})
+      that the NFS mount would hide. Move it to the export (or away) before running the role.
+    quiet: true

@@ -2,6 +2,8 @@
   ansible.builtin.command: "docker plugin inspect centralesupelec/mydockervolume -f '{{ '{{' }}.PluginReference{{ '}}' }}'"
   register: plugin_inspect
   changed_when: false
+  # Read-only, and every later decision (install, upgrade, the NFS checks) reads it.
+  check_mode: false
   # failed_when, not ignore_errors: this is a probe whose non-zero rc is the expected
   # answer on a host without the plugin, and it drives the install task below.
   # ignore_errors renders that normal case as a red "fatal ... ignoring" block, so a
@@ -12,7 +14,36 @@
   changed_when: false
   set_fact:
     docker_swarm_volume_upgrade_internal: true
-  when: (plugin_inspect.rc == 0) and (docker_swarm_volume_plugin != (plugin_inspect.stdout|replace("docker.io/", ""))) and docker_swarm_volume_upgrade
+  when: (plugin_inspect.rc == 0) and (docker_swarm_volume_plugin != (plugin_inspect.stdout|replace("docker.io/", ""))) and (docker_swarm_volume_upgrade | bool)
+
+# An installed plugin older than 1.4.0 has no FS_READY_MARKER setting: arming it would disable
+# the plugin, fail on the set and leave it disabled. Stop before touching it when it is staying.
+- name: Read the settings the installed plugin declares
+  ansible.builtin.command: >-
+    docker plugin inspect centralesupelec/mydockervolume
+    -f '{{ '{{' }}range .Config.Env{{ '}}' }}{{ '{{' }}println .Name{{ '}}' }}{{ '{{' }}end{{ '}}' }}'
+  register: plugin_declared
+  changed_when: false
+  check_mode: false
+  when:
+    - docker_swarm_volume_fs_nfs_source | length > 0
+    - plugin_inspect.rc == 0
+    - not docker_swarm_volume_upgrade_internal
+
+- name: Require a plugin that supports the ready marker
+  ansible.builtin.assert:
+    that:
+      - "'FS_READY_MARKER' in plugin_declared.stdout_lines"
+    fail_msg: >-
+      The plugin on {{ inventory_hostname }} ({{ plugin_inspect.stdout }}) has no FS_READY_MARKER
+      setting (needs v1.4.0 or later), so the NFS guard cannot be armed. Set
+      docker_swarm_volume_plugin to v1.4.0 or later with docker_swarm_volume_upgrade: true and
+      run in a maintenance window (the upgrade disables the plugin).
+    quiet: true
+  when:
+    - docker_swarm_volume_fs_nfs_source | length > 0
+    - plugin_inspect.rc == 0
+    - not docker_swarm_volume_upgrade_internal
 
 # Upgrade in place instead of rm -f + install: rm -f deletes the docker-side
 # volume records served by the driver.
@@ -61,10 +92,17 @@
 # disabled. Otherwise the value already in place is left alone.
 - name: Disable centralesupelec/mydockervolume plugin to set the enable timeout
   ansible.builtin.command: docker plugin disable -f centralesupelec/mydockervolume
-  when: output.changed or docker_swarm_volume_upgrade_internal or docker_swarm_volume_force_enable_timeout
+  when: output.changed or docker_swarm_volume_upgrade_internal or (docker_swarm_volume_force_enable_timeout | bool)
   register: output_timeout_disable
   changed_when: output_timeout_disable.rc == 0
   failed_when: false
+
+# A marker touched on the local directory under an unmounted export survives on local
+# disk and voids the guard after a reboot without NFS, so refuse to create it there.
+- name: Check the NFS export is mounted before creating the marker
+  ansible.builtin.command: mountpoint -q {{ docker_swarm_volume_fs_root }}
+  changed_when: false
+  when: docker_swarm_volume_fs_nfs_source | length > 0
 
 # The marker must exist before the guard is armed, or the next Create fails on a
 # marker that was never created. Touched on the host path bound in as the plugin
@@ -77,6 +115,40 @@
     modification_time: preserve
     access_time: preserve
   when: docker_swarm_volume_fs_ready_marker | length > 0
+
+# A plugin just installed or upgraded to a tag older than 1.4.0 has no FS_READY_MARKER: the set
+# below would fail with the plugin disabled and leave it so. Enable it again and stop instead.
+- name: Read the settings the new plugin declares
+  ansible.builtin.command: >-
+    docker plugin inspect centralesupelec/mydockervolume
+    -f '{{ '{{' }}range .Config.Env{{ '}}' }}{{ '{{' }}println .Name{{ '}}' }}{{ '{{' }}end{{ '}}' }}'
+  register: plugin_new_declared
+  changed_when: false
+  check_mode: false
+  when:
+    - docker_swarm_volume_fs_ready_marker | length > 0
+    - output.changed or docker_swarm_volume_upgrade_internal
+    - not ansible_check_mode
+
+- name: Stop on a new plugin without the ready marker
+  when:
+    - docker_swarm_volume_fs_ready_marker | length > 0
+    - output.changed or docker_swarm_volume_upgrade_internal
+    - not ansible_check_mode
+    - "'FS_READY_MARKER' not in plugin_new_declared.stdout_lines"
+  block:
+    - name: Enable the plugin again
+      ansible.builtin.command: >-
+        docker plugin enable --timeout {{ docker_swarm_volume_enable_timeout }}
+        centralesupelec/mydockervolume
+      changed_when: true
+
+    - name: Report the plugin version
+      ansible.builtin.fail:
+        msg: >-
+          {{ docker_swarm_volume_plugin }} on {{ inventory_hostname }} has no FS_READY_MARKER setting
+          (needs v1.4.0 or later), so docker_swarm_volume_fs_ready_marker cannot be armed. The plugin
+          was enabled again without the guard.
 
 # Set inside the same disabled window as the enable-timeout tasks: `docker plugin set`
 # refuses to run against an enabled plugin, and in steady state it is enabled.
@@ -94,6 +166,89 @@
   ansible.builtin.command: >-
     docker plugin enable --timeout {{ docker_swarm_volume_enable_timeout }}
     centralesupelec/mydockervolume
-  when: output.changed or docker_swarm_volume_upgrade_internal or docker_swarm_volume_force_enable_timeout
+  when: output.changed or docker_swarm_volume_upgrade_internal or (docker_swarm_volume_force_enable_timeout | bool)
   register: output_timeout_enable
   changed_when: output_timeout_enable.rc == 0
+
+# What the plugin serves is what it bound at its own start, not what the host has mounted now:
+# a run interrupted between the first mount and the Docker restart, or an export mounted by hand
+# after Docker started, leaves it on the local directory. Read the top mount on its root
+# (/mnt/volumes, fixed in the plugin's config) from its process's mountinfo.
+# In check mode, a host the real run would mount and restart (or install the plugin on) has
+# nothing meaningful to read yet, so the after-checks below are skipped there.
+- name: Read what the plugin has bound as its root
+  ansible.builtin.shell: |
+    set -euo pipefail
+    if [ "$(docker plugin inspect centralesupelec/mydockervolume -f '{{ '{{' }}.Enabled{{ '}}' }}')" != true ]; then
+      echo "plugin-disabled none"; exit 0
+    fi
+    id=$(docker plugin inspect centralesupelec/mydockervolume -f '{{ '{{' }}.Id{{ '}}' }}')
+    # Right after a Docker restart the task of an enabled plugin is not running yet.
+    for _ in $(seq 1 10); do
+      pid=$(ctr -n plugins.moby task ls | awk -v id="$id" '$1 == id {print $2}' || true)
+      [ -n "$pid" ] && break
+      sleep 3
+    done
+    if [ -z "$pid" ]; then echo "no-running-plugin-task none"; exit 0; fi
+    awk '$5 == "/mnt/volumes" { for (i = 7; i <= NF; i++) if ($i == "-") { fs = $(i+1); src = $(i+2) } }
+         END { print src, fs }' "/proc/$pid/mountinfo"
+  args:
+    executable: /bin/bash
+  register: plugin_root
+  changed_when: false
+  check_mode: false
+  when:
+    - docker_swarm_volume_fs_nfs_source | length > 0
+    - not (ansible_check_mode and (docker_swarm_nfs_before.rc == 1 or plugin_inspect.rc != 0
+      or docker_swarm_volume_upgrade_internal or (docker_swarm_volume_force_enable_timeout | bool)))
+
+- name: Require the plugin to serve the NFS export
+  ansible.builtin.assert:
+    that:
+      - plugin_root.stdout.split() | length == 2
+      - plugin_root.stdout.split()[0] == docker_swarm_volume_fs_nfs_source
+      - plugin_root.stdout.split()[1] in ['nfs', 'nfs4']
+    fail_msg: >-
+      The plugin on {{ inventory_hostname }} serves "{{ plugin_root.stdout }}", not the export
+      {{ docker_swarm_volume_fs_nfs_source }}: student work goes to local disk. In a maintenance
+      window, run `systemctl restart docker` on that node (running labs are stopped). If it says
+      plugin-disabled: `docker plugin enable centralesupelec/mydockervolume`, then re-run. If it
+      says no-running-plugin-task, the plugin failed to start: read `journalctl -u docker` before
+      restarting anything, and reboot the node on "no space left on device" (each plugin start
+      adds leaked mounts under runc 1.5).
+    quiet: true
+  when:
+    - docker_swarm_volume_fs_nfs_source | length > 0
+    - not (ansible_check_mode and (docker_swarm_nfs_before.rc == 1 or plugin_inspect.rc != 0
+      or docker_swarm_volume_upgrade_internal or (docker_swarm_volume_force_enable_timeout | bool)))
+
+# The guard is only set inside a disable window, so a plugin installed before the NFS source
+# was configured keeps whatever marker it had (often none) and still accepts local writes after
+# a boot without NFS. Disabling the plugin on a node with running labs is not something to do
+# silently, so check and stop instead.
+- name: Read the plugin's armed marker
+  ansible.builtin.command: >-
+    docker plugin inspect centralesupelec/mydockervolume
+    -f '{{ '{{' }}range .Settings.Env{{ '}}' }}{{ '{{' }}println .{{ '}}' }}{{ '{{' }}end{{ '}}' }}'
+  register: plugin_env
+  changed_when: false
+  check_mode: false
+  when:
+    - docker_swarm_volume_fs_nfs_source | length > 0
+    - not (ansible_check_mode and (plugin_inspect.rc != 0 or docker_swarm_volume_upgrade_internal
+      or (docker_swarm_volume_force_enable_timeout | bool)))
+
+- name: Require the plugin guard to match the configured marker
+  ansible.builtin.assert:
+    that:
+      - ("FS_READY_MARKER=" ~ docker_swarm_volume_fs_ready_marker) in plugin_env.stdout_lines
+    fail_msg: >-
+      The plugin on {{ inventory_hostname }} is not armed with FS_READY_MARKER={{ docker_swarm_volume_fs_ready_marker }}
+      (found: {{ plugin_env.stdout_lines | select('match', '^FS_READY_MARKER=') | list | default(['none'], true) | join(' ') }}),
+      so it would accept local writes after a boot without NFS. In a maintenance window (running labs
+      lose their volumes while the plugin is disabled), re-run with -e docker_swarm_volume_force_enable_timeout=true.
+    quiet: true
+  when:
+    - docker_swarm_volume_fs_nfs_source | length > 0
+    - not (ansible_check_mode and (plugin_inspect.rc != 0 or docker_swarm_volume_upgrade_internal
+      or (docker_swarm_volume_force_enable_timeout | bool)))

@@ -1,0 +1,175 @@
+---
+# FS backend over NFS. The plugin binds docker_swarm_volume_fs_root into itself once, when it
+# starts (rbind, no propagation), so the export must be mounted before Docker starts, and Docker
+# must restart after a first mount for the plugin to see the export instead of the local
+# directory under it. Docker is restarted only then: rewriting fstab or adopting a mount that is
+# already in place must not kill running labs.
+
+- name: Require a ready marker when the FS root is an NFS export
+  ansible.builtin.assert:
+    that:
+      - docker_swarm_volume_fs_ready_marker | length > 0
+    fail_msg: >-
+      docker_swarm_volume_fs_nfs_source is set but docker_swarm_volume_fs_ready_marker is empty.
+      Without the marker, a worker that boots before NFS writes student volumes to local disk.
+
+- name: Install the NFS client
+  ansible.builtin.apt:
+    name: nfs-common
+    state: present
+
+- name: Check whether the FS root is already a mount
+  ansible.builtin.command: findmnt -n -o SOURCE,FSTYPE --mountpoint {{ docker_swarm_volume_fs_root }}
+  register: docker_swarm_nfs_before
+  changed_when: false
+  failed_when: docker_swarm_nfs_before.rc not in [0, 1]
+  check_mode: false
+
+# A mounted root serving another export would pass every later check, and the next reboot
+# would silently switch students to the configured one.
+- name: Refuse a root that is mounted from another source
+  ansible.builtin.assert:
+    that:
+      - docker_swarm_nfs_before.stdout.split() | length == 2
+      - docker_swarm_nfs_before.stdout.split()[0] == docker_swarm_volume_fs_nfs_source
+      - docker_swarm_nfs_before.stdout.split()[1] in ['nfs', 'nfs4']
+    fail_msg: >-
+      {{ docker_swarm_volume_fs_root }} on {{ inventory_hostname }} is mounted from
+      "{{ docker_swarm_nfs_before.stdout }}", not from {{ docker_swarm_volume_fs_nfs_source }} over NFS.
+      If it is the same export under another spelling (host name or address), set
+      docker_swarm_volume_fs_nfs_source to the mounted spelling; otherwise migrate it by hand
+      (stop labs, move data, unmount) before running the role.
+    quiet: true
+  when: docker_swarm_nfs_before.rc == 0
+
+# Before a first mount the export would hide whatever is under the mount point: student work
+# from a time the plugin ran on local disk, or a marker touched there, which would void the
+# guard at the next boot without NFS. The first scan runs with Docker up, so a refusal stops
+# nothing. Only a clean root gets the stop window: Docker stopped, scanned again (nothing can
+# have been written in between), marker removed, export mounted. A failure inside the window
+# puts Docker back the way it was before it.
+- name: Inspect and mount an FS root that is not mounted yet
+  when: docker_swarm_nfs_before.rc == 1
+  vars:
+    docker_swarm_nfs_lone_marker: >-
+      {{ docker_swarm_nfs_underlay.files | length == 1
+         and docker_swarm_nfs_underlay.files[0].path | basename == docker_swarm_volume_fs_ready_marker
+         and docker_swarm_nfs_underlay.files[0].isreg
+         and not docker_swarm_nfs_underlay.files[0].islnk }}
+  block:
+    - name: Check whether the FS root exists
+      ansible.builtin.stat:
+        path: "{{ docker_swarm_volume_fs_root }}"
+        follow: false
+      register: docker_swarm_nfs_root
+
+    - name: Scan the local directory with Docker running
+      ansible.builtin.import_tasks: nfs_scan.yml
+      when: docker_swarm_nfs_root.stat.exists
+
+    - name: Record whether Docker runs
+      ansible.builtin.command: systemctl is-active {{ item }}
+      loop: [docker.socket, docker]
+      register: docker_swarm_nfs_docker_state
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Mount inside a Docker stop window
+      block:
+        - name: Stop Docker before the last scan and the mount
+          ansible.builtin.systemd:
+            name: "{{ item }}"
+            state: stopped
+          loop: [docker.socket, docker]
+
+        - name: Scan the local directory again with Docker stopped
+          ansible.builtin.import_tasks: nfs_scan.yml
+          when: docker_swarm_nfs_root.stat.exists
+
+        - name: Remove a marker file left on local disk
+          ansible.builtin.file:
+            path: "{{ docker_swarm_volume_fs_root }}/{{ docker_swarm_volume_fs_ready_marker }}"
+            state: absent
+          when:
+            - docker_swarm_nfs_root.stat.exists
+            - docker_swarm_nfs_lone_marker | bool
+
+        - name: Mount the NFS export on the FS root
+          ansible.posix.mount:
+            src: "{{ docker_swarm_volume_fs_nfs_source }}"
+            path: "{{ docker_swarm_volume_fs_root }}"
+            fstype: nfs
+            opts: "{{ docker_swarm_volume_fs_nfs_options }}"
+            state: mounted
+
+      rescue:
+        # Best effort: the original failure is what gets reported.
+        - name: Put Docker back as it was before the stop window
+          ansible.builtin.systemd:
+            name: "{{ item.item }}"
+            state: started
+          loop: "{{ docker_swarm_nfs_docker_state.results }}"
+          loop_control:
+            label: "{{ item.item }}"
+          when: item.stdout == 'active'
+          failed_when: false
+
+        - name: Report the failure inside the stop window
+          ansible.builtin.fail:
+            msg: "{{ ansible_failed_result.msg | default(ansible_failed_result) }}"
+
+# Already mounted from the configured export: only the fstab line may change (remount in place),
+# which keeps the plugin's binding and the running labs.
+- name: Keep the fstab entry of an adopted mount in line
+  ansible.posix.mount:
+    src: "{{ docker_swarm_volume_fs_nfs_source }}"
+    path: "{{ docker_swarm_volume_fs_root }}"
+    fstype: nfs
+    opts: "{{ docker_swarm_volume_fs_nfs_options }}"
+    state: mounted
+  when: docker_swarm_nfs_before.rc == 0
+
+- name: Create the Docker drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    mode: '0755'
+
+# Ordering only, not a requirement: with NFS down at boot, Docker still starts and the ready
+# marker makes the plugin refuse volumes, instead of the whole node staying down.
+- name: Start Docker after remote file systems
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/docker.service.d/mydocker-fs.conf
+    content: |
+      [Unit]
+      After=remote-fs.target
+      Wants=remote-fs.target
+    mode: '0644'
+  register: docker_swarm_nfs_dropin
+
+# Not a handler: the reload must happen before the restart below, in this same run.
+- name: Reload systemd for the Docker drop-in  # noqa: no-handler
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: docker_swarm_nfs_dropin.changed
+
+# The plugin keeps whatever it bound at start, so it needs a (re)start when the root was not a
+# mount before this run; Docker was stopped above for the scan. A run interrupted between the
+# mount and here leaves the root mounted and the plugin on the old directory; the plugin-root
+# check in local_volume_plugin.yml stops the next run on that.
+- name: Start Docker so the plugin binds the export
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop: [docker.socket, docker]
+  when: docker_swarm_nfs_before.rc == 1
+
+# A run that stopped after the mount but before the start above finds the root mounted and
+# Docker down; starting it now binds the export.
+- name: Make sure Docker runs
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+  loop: [docker.socket, docker]
+  when: docker_swarm_nfs_before.rc == 0
