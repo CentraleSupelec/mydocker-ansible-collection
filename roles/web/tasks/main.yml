@@ -451,6 +451,7 @@
 - name: Restart service Thuv
   ansible.builtin.systemd:
     state: restarted
+    enabled: true
     name: thuv
   become: true
 ...

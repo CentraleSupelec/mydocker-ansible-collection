@@ -10,6 +10,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 ### Fixed
 - `web` writes `test_username` and `test_password` only when both are set, so the back starts without them (an empty value failed at startup with "Cannot pass null or empty values to constructor")
 - `web` and `docker_api` install `unzip`, so the release archives extract on a fresh Ubuntu host (the extract task failed with "Failed to find handler")
+- `web` enables the `thuv` service, so the back starts again after the web node reboots (on a fresh host it stayed disabled)
 - `docker_swarm` defaults `manager` to the first `docker_swarm_manager` host, so a static inventory no longer fails at swarm join (only the Terraform `add_hosts` path set it)
 - `docker_swarm` reads `docker_swarm_volume_upgrade` and `docker_swarm_volume_force_enable_timeout` as booleans, so `-e ...=false` no longer upgrades or force-disables the plugin
 - `docker_swarm` stops, with the plugin enabled again, when a marker is configured but the plugin just installed or upgraded declares no `FS_READY_MARKER`, instead of leaving it disabled. Tags too old for `SHELL_TIMEOUT_SECONDS` (v1.3.0) are still refused earlier by the install or seed task, and Docker leaves such a plugin installed and disabled until a run with a supported pin and `docker_swarm_volume_upgrade: true` upgrades it
