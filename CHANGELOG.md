@@ -15,6 +15,7 @@ this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2
 - `docker_swarm` reads `docker_swarm_volume_upgrade` and `docker_swarm_volume_force_enable_timeout` as booleans, so `-e ...=false` no longer upgrades or force-disables the plugin
 - `docker_swarm` stops, with the plugin enabled again, when a marker is configured but the plugin just installed or upgraded declares no `FS_READY_MARKER`, instead of leaving it disabled. Tags too old for `SHELL_TIMEOUT_SECONDS` (v1.3.0) are still refused earlier by the install or seed task, and Docker leaves such a plugin installed and disabled until a run with a supported pin and `docker_swarm_volume_upgrade: true` upgrades it
 - `docker_swarm` creates the FS root with the configured `docker_swarm_volume_fs_root` instead of a hardcoded `/mnt/mydocker-fs`, and leaves it alone when it is an NFS mount
+- `docker_swarm` defaults `caddy_event_throttle_interval` to `5s` instead of `1m`, so a new lab's URL works within seconds of launch (with `1m`, Caddy had no site for the lab for up to a minute: TLS error or no desktop). Installs that already set the value keep it
 
 ## 0.38.0
 ### Added
