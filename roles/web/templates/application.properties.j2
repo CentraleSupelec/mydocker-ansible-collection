@@ -83,4 +83,7 @@ grpc.tls.client-key-path=file://{{ web_back_config_location }}/tls/client.key
 grpc.tls.client-cert-path=file://{{ web_back_config_location }}/tls/client.crt
 grpc.tls.ca-cert-path=file://{{ web_back_config_location }}/tls/ca.crt
 
+slurm.secret-encryption-key={{ web_slurm_secret_encryption_key | default('', true) }}
+slurm.secret-encryption-required={{ web_slurm_secret_encryption_required | to_json }}
+
 {{ web_extra_application_properties }}
