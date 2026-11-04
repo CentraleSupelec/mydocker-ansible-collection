@@ -373,6 +373,13 @@
     state: directory
   become: true
 
+- name: Check the Slurm secret encryption key is set when it is required
+  ansible.builtin.assert:
+    that:
+      - not (web_slurm_secret_encryption_required | bool) or (web_slurm_secret_encryption_key | default('', true) | length > 0)
+    fail_msg: web_slurm_secret_encryption_key must be defined when web_slurm_secret_encryption_required is true
+    quiet: true
+
 - name: Add backend config file
   ansible.builtin.template:
     src: application.properties.j2

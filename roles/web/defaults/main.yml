@@ -32,6 +32,8 @@ web_contexts_save: /opt/contexts/
 web_front_location: /var/www/front
 web_jwt_expiration: 86400000
 web_jwt_secret:
+web_slurm_secret_encryption_key: ~
+web_slurm_secret_encryption_required: false
 web_sentry_dsn: ~
 env: ~
 smtp_auth: "true"
