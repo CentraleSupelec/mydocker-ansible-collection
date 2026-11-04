@@ -76,8 +76,11 @@ polling_interval_user_courses_in_milliseconds = {{ back_to_go_polling_interval_f
 app.ignore_recent_last_start_date_in_seconds = {{ ignore_recent_last_start_date_in_seconds }}
 save.student-work.enabled = {{ save_student_work_enabled | to_json }}
 
+{# The back skips its load-test user only when both are absent: an empty value stops it at startup. #}
+{% if test_username and test_password %}
 test_username = {{ test_username }}
 test_password = {{ test_password }}
+{% endif %}
 
 grpc.tls.client-key-path=file://{{ web_back_config_location }}/tls/client.key
 grpc.tls.client-cert-path=file://{{ web_back_config_location }}/tls/client.crt
