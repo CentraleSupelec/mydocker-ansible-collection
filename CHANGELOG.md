@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## 0.39.0
 ### Added
 - `docker_swarm` mounts the NFS export of the FS backend when `docker_swarm_volume_fs_nfs_source` is set: fstab entry, Docker ordered after remote file systems, ready marker mandatory and created on the export only. Docker is restarted only when the root was not mounted before the run, so adopting an existing mount or rewriting its fstab line keeps running labs. The run stops, instead of hiding or moving data, when the root is mounted from another source, when local data sits under the mount point, when the plugin serves something other than the export, or when the plugin is not armed with the configured marker
 ### Fixed
