@@ -24,10 +24,6 @@
       caddy_1: "http://"
       caddy_1.import: "default_response"
       caddy_2: "https://"
-      # Without a tls line, a name with no route gets no certificate until some lab route
-      # loads it: the handshake ends in internal_error, which fails the web role's JVM trust
-      # check on a fresh install.
-      caddy_2.tls: "{{ caddy_cert_file_target_path }} {{ caddy_key_file_target_path }}"
       caddy_2.import: "default_response"
     caddy_aristote_dispatcher_labels:
       caddy_3: "{{ aristote_dispatcher_alias }}"
