@@ -101,3 +101,7 @@
 - name: Pull rsync image
   community.docker.docker_image_pull:
     name: instrumentisto/rsync-ssh:latest
+  # The web playbook has no play-level become; without it the pull uses the SSH user's
+  # socket access, which an SSH connection opened before the swarm play added that user
+  # to the docker group does not have.
+  become: true
