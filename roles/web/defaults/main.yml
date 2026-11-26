@@ -4,6 +4,10 @@ web_debug_grpc: "false"
 web_extra_application_properties: ~
 # gRPC inbound message limit for responses from the Go API, in bytes. 16 MiB.
 web_go_max_inbound_message_size: 16777216
+# How long a call asking every cluster (connected users, active courses) waits for one cluster
+# before skipping it, per cluster, asked one after the other. A duration: 5s, 1500ms; a number
+# alone is milliseconds.
+web_go_fanout_deadline: 5s
 # Upgrade to clusters only: the Go API and state URL a single-Go platform used, seeded once as
 # the "default" cluster. Same values as before clusters; ignored once a cluster exists.
 web_default_cluster_go_address: "{{ (inventory_hostname == groups['docker_swarm_manager'][0]) | ternary('127.0.0.1',  hostvars[groups['docker_swarm_manager'][0]]['ansible_host']) }}"

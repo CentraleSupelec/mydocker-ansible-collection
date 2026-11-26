@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- `web` writes `go.app.fanout-deadline` from `web_go_fanout_deadline` (default `5s`): how long one cluster gets to answer the calls made to every cluster (connected users per course, active courses per user) before it is skipped. Clusters are asked one after the other. A back without the setting ignores it
 
 ## 0.39.2
 ### Fixed
