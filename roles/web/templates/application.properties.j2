@@ -33,6 +33,8 @@ go.debug = {{ web_debug_grpc }}
 # Environment logs are the largest response the Go API sends; gRPC's own default is 4 MiB.
 # The back end reads this with no fallback, so the service will not start without it.
 go.app.max-inbound-message-size = {{ web_go_max_inbound_message_size }}
+# Time one cluster gets to answer a call made to every cluster before it is skipped.
+go.app.fanout-deadline = {{ web_go_fanout_deadline }}
 
 ## Sentry configuration
 sentry.dsn = {{ web_sentry_dsn }}
