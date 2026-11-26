@@ -38,6 +38,129 @@
   delegate_to: "{{ manager }}"
   loop: "{{ labels }}"
 
+# Caddy rejects its whole configuration when the certificate and the key are not
+# a pair: it keeps running but serves nothing on 443, and the play would still
+# end green. Check them on every proxy host before the node is labelled and
+# before the proxy service changes, and stop every host if one pair is wrong.
+# The paths are the manager's, as in caddy_service.yml: inventories set them for
+# the manager while the proxy hosts are often workers. Loading the pair with
+# Python's ssl module is the TLS library's own check, so key type and encoding
+# do not matter; the empty password makes an encrypted key fail instead of
+# prompting (Caddy cannot use one either). A host without the files only gets a
+# warning: its proxy task is already rejected there, and auto-scaled workers
+# get the label without the files.
+- name: Check that the reverse proxy certificate and key are a pair
+  when: caddy_server is defined and caddy_server | bool
+  any_errors_fatal: true
+  become: true
+  vars:
+    caddy_pair_cert: "{{ hostvars[manager].caddy_cert_file_source_path }}"
+    caddy_pair_key: "{{ hostvars[manager].caddy_key_file_source_path }}"
+  block:
+    - name: Remember which swarm this proxy host belongs to
+      ansible.builtin.set_fact:
+        caddy_pair_manager: "{{ manager }}"
+
+    - name: Load the reverse proxy certificate and key together
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_facts.python.executable | default('/usr/bin/python3') }}"
+          - -c
+          - |
+            import os, ssl, sys
+            missing = [p for p in sys.argv[1:] if not os.path.exists(p)]
+            if missing:
+                print("missing: " + ", ".join(missing))
+                sys.exit(3)
+            # Security level 0: check only that the pair matches, not key size or
+            # signature hash, which Caddy does not refuse either.
+            ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            try:
+                ctx.set_ciphers("ALL:@SECLEVEL=0")
+            except ssl.SSLError:
+                pass  # no security levels in this TLS library (LibreSSL)
+            try:
+                ctx.load_cert_chain(sys.argv[1], sys.argv[2], password="")
+            except OSError as e:
+                print(e)
+                sys.exit(1)
+          - "{{ caddy_pair_cert }}"
+          - "{{ caddy_pair_key }}"
+      register: caddy_pair_check
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Warn when the reverse proxy certificate or key is missing on this host
+      ansible.builtin.debug:
+        msg: "Reverse proxy certificate and key not checked on {{ inventory_hostname }}: {{ caddy_pair_check.stdout }}"
+      when: caddy_pair_check.rc == 3
+
+    - name: Stop when the reverse proxy certificate and key are not a usable pair
+      ansible.builtin.assert:
+        that: caddy_pair_check.rc in [0, 3]
+        fail_msg: >-
+          {{ caddy_pair_cert }} and {{ caddy_pair_key }} on {{ inventory_hostname }}
+          are not a usable pair ({{ ((caddy_pair_check.stdout | default('')) ~ ' '
+          ~ (caddy_pair_check.stderr | default(''))) | trim or caddy_pair_check.msg | default('') }}).
+          Caddy would reject its configuration and serve no lab. Fix the files
+          (caddy_cert_file_source_path, caddy_key_file_source_path) and rerun.
+        quiet: true
+
+# The warning above lets a host without the files through. When no proxy host of
+# a swarm has them (a mistyped path, files never copied), its proxy serves
+# nothing, so stop. A run whose --limit leaves out every proxy host of a swarm
+# checks nothing for that swarm. When a proxy host of the swarm left the play earlier (unreachable,
+# failed), it may be the proxy host that has the files, so only warn: stopping
+# here would leave freshly joined workers without their labels.
+- name: Stop when no reverse proxy host of this swarm has a usable certificate and key
+  when: inventory_hostname in groups['docker_swarm_manager']
+  any_errors_fatal: true
+  vars:
+    caddy_pair_hosts: >-
+      {{ ansible_play_hosts_all | map('extract', hostvars)
+         | selectattr('caddy_pair_check.rc', 'defined')
+         | selectattr('caddy_pair_manager', 'defined')
+         | selectattr('caddy_pair_manager', 'equalto', inventory_hostname) | list }}
+    # Proxy hosts of this swarm that left the play, from inventory vars (they never
+    # ran the check): caddy_server read with the same | bool as the check and the
+    # label, and a host without a manager var belongs to the first manager.
+    caddy_pair_left: "{{ ansible_play_hosts_all | difference(ansible_play_hosts) }}"
+    caddy_pair_dropped: >-
+      {{ caddy_pair_left
+         | zip(caddy_pair_left | map('extract', hostvars)
+                 | map(attribute='caddy_server', default=false) | map('bool'),
+               caddy_pair_left | map('extract', hostvars)
+                 | map(attribute='manager', default=groups['docker_swarm_manager'][0]))
+         | selectattr('1') | selectattr('2', 'equalto', inventory_hostname)
+         | map('first') | list }}
+  block:
+    - name: Warn when the swarm's proxy hosts lack the files but some host left the play
+      ansible.builtin.debug:
+        msg: >-
+          No checked reverse proxy host of the swarm managed by {{ inventory_hostname }} has
+          {{ caddy_cert_file_source_path }} and {{ caddy_key_file_source_path }} (missing on
+          {{ caddy_pair_hosts | map(attribute='inventory_hostname') | join(', ') }}). Not stopping
+          because {{ caddy_pair_dropped | join(', ') }} left the play earlier and may hold them.
+      when:
+        - caddy_pair_hosts | length > 0
+        - caddy_pair_hosts | selectattr('caddy_pair_check.rc', 'equalto', 0) | list | length == 0
+        - caddy_pair_dropped | length > 0
+
+    - name: Stop when no reverse proxy host of this swarm has the certificate and key
+      ansible.builtin.assert:
+        that: >-
+          caddy_pair_hosts | length == 0
+          or caddy_pair_hosts | selectattr('caddy_pair_check.rc', 'equalto', 0) | list | length > 0
+          or caddy_pair_dropped | length > 0
+        fail_msg: >-
+          No reverse proxy host of the swarm managed by {{ inventory_hostname }} has the
+          certificate and key: {{ caddy_cert_file_source_path }} or {{ caddy_key_file_source_path }}
+          is missing on {{ caddy_pair_hosts | map(attribute='inventory_hostname') | join(', ') }}.
+          Caddy would serve no lab. Copy the files to the hosts with caddy_server, or fix
+          caddy_cert_file_source_path and caddy_key_file_source_path, and rerun.
+        quiet: true
+
 - name: Add caddy server label
   community.docker.docker_node:
     hostname: "{{ docker_info.host_info.Swarm.NodeID }}"
