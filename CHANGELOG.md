@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## 0.39.2
 ### Fixed
 - `docker_swarm` stops the play, on every host, when the reverse proxy certificate and key on a `caddy_server` host are not a pair. Caddy rejected its whole configuration and served nothing on 443 while the swarm play ended green, and the `web` role's trust check only warned that the proxy was unreachable. It also stops when no `caddy_server` host of a swarm has the certificate and key files; a single host without them only gets a warning
 
