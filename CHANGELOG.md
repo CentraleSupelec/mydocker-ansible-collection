@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 this project does NOT adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+- `docker_swarm` loads the reverse proxy certificate on Caddy's `https://` catch-all, so a name with no route gets the certificate and a 410. Before any lab existed, the handshake ended in `internal_error` and the `web` role's JVM trust check failed on a fresh install, which pushed operators to set `test_connection_disable_ssl_validation: true`
+- `docker_api` pulls the rsync image as root. The `web` and `full_setup` playbooks failed on that task with `Permission denied` on the Docker socket when Ansible reused an SSH connection opened before `nickjj.docker` added the SSH user to the `docker` group
 
 ## 0.39.0
 ### Added
